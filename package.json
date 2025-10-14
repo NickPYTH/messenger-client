@@ -2,7 +2,10 @@
   "name": "messenger",
   "version": "0.1.0",
   "description": "Мессенджер для корпоративного использования",
-  "author": "Your Name",
+  "author": {
+    "name": "SNV",
+    "email": "nicksrnk@gmail.com"
+  },
   "private": true,
   "main": "public/electron.js",
   "homepage": "./",
