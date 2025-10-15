@@ -18,6 +18,8 @@ function createWindow() {
 
   mainWindow.loadURL('http://localhost:3000'); // Загружайте свой React-интерфейс
 
+  Menu.setApplicationMenu(null);
+
   // Перехватываем событие закрытия окна
   mainWindow.on('close', (event) => {
     // Если пользователь не выходит через Quit, просто прячем окно
