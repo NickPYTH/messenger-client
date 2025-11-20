@@ -1,5 +1,6 @@
 import {combineReducers, configureStore} from "@reduxjs/toolkit";
-import userSlice, { CurrentUserModelStateType } from "./slice/UserSlice";
+import userSlice, {CurrentUserModelStateType} from "./slice/UserSlice";
+import {userAPI} from "../service/UserService";
 
 
 export type RootStateType = {
@@ -8,7 +9,7 @@ export type RootStateType = {
 
 const rootReducer = combineReducers({
     currentUser: userSlice,
-    
+    [userAPI.reducerPath]: userAPI.reducer,
 })
 
 export const setupStore = () => {
@@ -16,7 +17,7 @@ export const setupStore = () => {
         reducer: rootReducer,
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware()
-
+            .concat(userAPI.middleware)
     })
 }
 
