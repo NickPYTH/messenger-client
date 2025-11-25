@@ -12,5 +12,9 @@ export const userAPI = createApi({
             query: () => 'me',
             providesTags: ['user'],
         }),
+        getAll: build.query<UserModel[], void>({
+            query: () => 'users',
+            providesTags: ['user'],
+        }),
     })
 });

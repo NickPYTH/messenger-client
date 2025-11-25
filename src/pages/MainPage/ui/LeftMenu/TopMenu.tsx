@@ -1,6 +1,6 @@
 import {Avatar, Flex, Input} from "antd"
 import {useState} from "react";
-import { ProfileModal } from "./ProfileModal";
+import { ProfileModal } from "../ProfileModal";
 
 const { Search } = Input;
 

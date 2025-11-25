@@ -1,6 +1,6 @@
 import {Flex} from 'antd';
-import {LeftMenu} from './LeftMenu';
-import {ChatWindow} from './ChatWindow';
+import {LeftMenu} from './LeftMenu/LeftMenu';
+import {ChatWindow} from './ChatWindow/ChatWindow';
 import {useEffect, useState} from 'react';
 import {userAPI} from "../../../service/UserService";
 import {useDispatch} from "react-redux";
@@ -51,7 +51,7 @@ const MainPage = () => {
     return(
         <Flex style={{background: '#d8e3f4', height: '100vh', overflow: 'hidden'}}>
             <LeftMenu />
-            {!selectedChatId && <ChatWindow />}
+            {selectedChatId && <ChatWindow />}
         </Flex>
     )
 }
