@@ -2,7 +2,7 @@ import {Divider, Flex, Radio} from "antd";
 import React, {useState} from "react";
 import {CheckboxGroupProps} from "antd/es/checkbox";
 import {TopMenu} from "./TopMenu";
-import {ChatsList} from "./Chats/ChatsList";
+import {ConversationsList} from "./Conversations/ConversationsList";
 import {ContactsList} from "./Contacts/ContactsList";
 
 export const LeftMenu = () => {
@@ -25,7 +25,7 @@ export const LeftMenu = () => {
             <TopMenu/>
             <Divider style={{margin: 0}}/>
             <Flex vertical justify={'space-between'} style={{height: '100%'}}>
-                {currentBottomMenuOption == "chats" && <ChatsList />}
+                {currentBottomMenuOption == "chats" && <ConversationsList />}
                 {currentBottomMenuOption == "contacts" && <ContactsList />}
                 <Radio.Group
                     block

@@ -1,6 +1,7 @@
 import {combineReducers, configureStore} from "@reduxjs/toolkit";
 import userSlice, {CurrentUserModelStateType} from "./slice/UserSlice";
 import {userAPI} from "../service/UserService";
+import {conversationsAPI} from "../service/ConversationsService";
 
 
 export type RootStateType = {
@@ -10,6 +11,7 @@ export type RootStateType = {
 const rootReducer = combineReducers({
     currentUser: userSlice,
     [userAPI.reducerPath]: userAPI.reducer,
+    [conversationsAPI.reducerPath]: conversationsAPI.reducer,
 })
 
 export const setupStore = () => {
@@ -18,6 +20,7 @@ export const setupStore = () => {
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware()
             .concat(userAPI.middleware)
+            .concat(conversationsAPI.middleware)
     })
 }
 

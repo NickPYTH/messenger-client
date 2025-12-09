@@ -7,3 +7,8 @@ if (document.location.host.split(':')[1]) {
         host += ':8000'
 } else
     host += ''
+
+export enum CONVERSATION_TYPE {
+    PRIVATE="private",
+    GROUP="group"
+}
