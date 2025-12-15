@@ -1,5 +1,5 @@
 import {ConversationItem} from "./ConversationItem";
-import {Flex, Spin} from "antd";
+import {Empty, Flex, Spin} from "antd";
 import React, {useEffect} from "react";
 import {conversationsAPI} from "../../../../../service/ConversationsService";
 import {ConversationModel} from "../../../../../entities/ConversationModel";
@@ -26,5 +26,6 @@ export const ConversationsList = () => {
             return (<ConversationItem conversation={conversation}/>);
         })}
         {isConversationsLoading && <Spin style={{marginTop: 50}}/>}
+        {conversations?.length == 0 && <Empty style={{marginTop: 50}}/>}
     </Flex>
 }

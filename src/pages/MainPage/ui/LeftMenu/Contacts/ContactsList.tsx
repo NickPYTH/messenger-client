@@ -1,4 +1,4 @@
-import {Flex, Spin} from "antd";
+import {Empty, Flex, Spin} from "antd";
 import React, {useEffect} from "react";
 import {ContactItem} from "./ContactItem";
 import {userAPI} from "../../../../../service/UserService";
@@ -26,5 +26,6 @@ export const ContactsList = () => {
             return (<ContactItem contact={contact}/>);
         })}
         {isUsersLoading && <Spin style={{marginTop: 50}}/>}
+        {users?.length == 0 && <Empty style={{marginTop: 50}}/>}
     </Flex>
 }

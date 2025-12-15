@@ -3,8 +3,9 @@ import {LeftMenu} from './LeftMenu/LeftMenu';
 import {ChatWindow} from './ChatWindow/ChatWindow';
 import {useEffect, useState} from 'react';
 import {userAPI} from "../../../service/UserService";
-import {useDispatch} from "react-redux";
-import {setCurrentUser} from "../../../store/slice/UserSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {setCurrentUser} from "../../../store/slice/GeneralSlice";
+import { RootStateType } from '../../../store/store';
 
 declare global {
   interface Window {
@@ -18,10 +19,11 @@ const MainPage = () => {
 
     // Store
     const dispatch = useDispatch();
+    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
     // -----
 
     // States
-    const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+
     // -----
 
     // Web requests
@@ -51,7 +53,7 @@ const MainPage = () => {
     return(
         <Flex style={{background: '#d8e3f4', height: '100vh', overflow: 'hidden'}}>
             <LeftMenu />
-            {selectedChatId && <ChatWindow />}
+            {selectedConversationId && <ChatWindow />}
         </Flex>
     )
 }

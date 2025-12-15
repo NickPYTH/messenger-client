@@ -1,6 +1,8 @@
 import {Flex, Divider, Avatar, Typography, Button} from "antd"
 import {MessageOutlined} from '@ant-design/icons';
 import {UserModel} from "../../../../../entities/UserModel";
+import {conversationsAPI} from "../../../../../service/ConversationsService";
+import {useEffect} from "react";
 
 const { Text } = Typography;
 
@@ -9,6 +11,28 @@ type PropsType = {
 }
 
 export const ContactItem = (props:PropsType) => {
+
+    // Web requests
+    const [createConversation, {
+        isSuccess: isSuccessCreateConversation
+    }] = conversationsAPI.useCreateMutation();
+    // -----
+
+    // Effects
+    useEffect(() => {
+        if (isSuccessCreateConversation) {
+
+        }
+    }, [isSuccessCreateConversation]);
+    // -----
+
+    // Handlers
+    const createConversationHandler = () => {
+        let member_ids = [props.contact.id];
+        createConversation({member_ids});
+    }
+    // -----
+
     return(
         <Flex className="chatItem" justify={'space-between'} align={'center'}>
             <Flex align={"center"} gap={'small'}>
@@ -20,7 +44,7 @@ export const ContactItem = (props:PropsType) => {
                     </Flex>
                 </Flex>
             </Flex>
-            <Button type={'link'} icon={<MessageOutlined />}/>
+            <Button type={'link'} onClick={createConversationHandler} icon={<MessageOutlined />}/>
         </Flex>
     )
 }
