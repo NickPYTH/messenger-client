@@ -19,11 +19,12 @@ export const ChatWindow = () => {
     // -----
 
     // States
+    const [text, setText] = useState<string>("");
     const [messages, setMessages] = useState<MessageModel[]>([]);
     // -----
 
     // Web requests
-    const [createConversation, {
+    const [createMessage, {
         data: createdMessage,
         isSuccess: isCreateMessageSuccess,
         isLoading: isCreateMessageLoading
@@ -45,6 +46,25 @@ export const ChatWindow = () => {
             setMessages(messagesFromRequest);
         }
     }, [messagesFromRequest]);
+    useEffect(() => {
+        if (isCreateMessageSuccess)
+            setText("");
+    }, [isCreateMessageSuccess]);
+    // -----
+
+    // Handlers
+    const changeTextHandler = (e:any) => {
+        setText(e.target.value);
+    };
+    const createMessageHandler = () => {
+        if (text && selectedConversationId) {
+            let message: MessageModel = {
+                conversation: selectedConversationId,
+                text
+            };
+            createMessage(message);
+        }
+    };
     // -----
 
     return(
@@ -78,10 +98,13 @@ export const ChatWindow = () => {
                 alignItems: 'center'
             }}>
                 <Search
+                    value={text}
+                    onChange={changeTextHandler}
                     style={{ maxWidth: 600, width: '100%' }}
                     placeholder="Введите сообщение"
                     allowClear
                     enterButton="Отправить"
+                    onSearch={createMessageHandler}
                 />
             </div>
         </Flex>

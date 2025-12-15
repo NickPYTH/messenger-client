@@ -8,6 +8,8 @@ if (document.location.host.split(':')[1]) {
 } else
     host += ''
 
+export const wsHost = 'ws://localhost:8000';
+
 export enum CONVERSATION_TYPE {
     PRIVATE="private",
     GROUP="group"
