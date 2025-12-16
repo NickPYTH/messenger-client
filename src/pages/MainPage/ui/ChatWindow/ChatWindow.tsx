@@ -5,17 +5,26 @@ import {useDispatch, useSelector} from "react-redux";
 import {userAPI} from "../../../../service/UserService";
 import {conversationsAPI} from "../../../../service/ConversationsService";
 import {messageAPI} from "../../../../service/MessageService";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {MessageModel} from "../../../../entities/MessageModel";
+import { WS_MESSAGE } from "../MainPage";
 
 const {Search} = Input;
 
-export const ChatWindow = () => {
+type PropsType = {
+    ws: WebSocket;
+}
+
+export const ChatWindow = (props:PropsType) => {
 
     // Store
     const dispatch = useDispatch();
     const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
+    // -----
+
+    // Refs
+    const bottomRef = useRef(null);
     // -----
 
     // States
@@ -44,6 +53,7 @@ export const ChatWindow = () => {
     useEffect(() => {
         if (messagesFromRequest){
             setMessages(messagesFromRequest);
+            setTimeout(()=>handleScrollToBottom(), 100);
         }
     }, [messagesFromRequest]);
     useEffect(() => {
@@ -64,6 +74,23 @@ export const ChatWindow = () => {
             };
             createMessage(message);
         }
+    };
+    const handleScrollToBottom = () => {
+        if (bottomRef.current) {
+            //@ts-ignore
+            bottomRef.current.scrollIntoView({
+                behavior: 'smooth', // Плавная анимация
+                block: 'end',       // Выровнять по нижней границе
+            });
+        }
+    };
+    // -----
+
+    // Useful utils
+    props.ws.onmessage = (event) => {
+        let data:WS_MESSAGE = JSON.parse(event.data);
+        setMessages((prev:MessageModel[]) => prev.concat([data.entity]));
+        setTimeout(()=>handleScrollToBottom(), 100);
     };
     // -----
 
@@ -89,6 +116,7 @@ export const ChatWindow = () => {
                         fromYou={message.sender?.id == currentUser?.id}
                     />
                 ))}
+                <div ref={bottomRef} style={{ height: '0px' }} />
             </Flex>
             
             <div style={{

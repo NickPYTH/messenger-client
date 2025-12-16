@@ -1,12 +1,13 @@
-import {Flex, notification} from 'antd';
+import {Flex} from 'antd';
 import {LeftMenu} from './LeftMenu/LeftMenu';
 import {ChatWindow} from './ChatWindow/ChatWindow';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {userAPI} from "../../../service/UserService";
 import {useDispatch, useSelector} from "react-redux";
 import {setCurrentUser} from "../../../store/slice/GeneralSlice";
-import { RootStateType } from '../../../store/store';
-import { wsHost } from '../../../shared/config/constants';
+import {RootStateType} from '../../../store/store';
+import {wsHost} from '../../../shared/config/constants';
+import {MessageModel} from "../../../entities/MessageModel";
 
 declare global {
     interface Window {
@@ -18,6 +19,11 @@ declare global {
 
 const RECONNECT_INTERVAL = 15000; // 15 секунд
 const MAX_RECONNECT_ATTEMPTS = 10; // Максимальное количество попыток переподключения
+
+export type WS_MESSAGE = {
+    type: string;
+    entity: MessageModel;
+}
 
 const MainPage = () => {
 
@@ -91,7 +97,8 @@ const MainPage = () => {
 
                 socket.onmessage = (event) => {
                     if (!isMounted) return;
-                    // Обработка сообщений
+                    let data:WS_MESSAGE = JSON.parse(event.data);
+
                 };
 
                 socket.onclose = () => {
@@ -144,7 +151,7 @@ const MainPage = () => {
     return(
         <Flex style={{background: '#d8e3f4', height: '100vh', overflow: 'hidden'}}>
             <LeftMenu />
-            {selectedConversationId && <ChatWindow />}
+            {(selectedConversationId && messagesWs) && <ChatWindow ws={messagesWs}/>}
         </Flex>
     )
 }
