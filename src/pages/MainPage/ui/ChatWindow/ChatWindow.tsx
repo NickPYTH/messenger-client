@@ -1,26 +1,23 @@
-import { Flex, Input } from "antd"
-import { RootStateType } from "../../../../store/store";
-import { Message } from "./Message";
+import {Flex, Input} from "antd"
+import {RootStateType} from "../../../../store/store";
+import {Message} from "./Message";
 import {useDispatch, useSelector} from "react-redux";
-import {userAPI} from "../../../../service/UserService";
 import {conversationsAPI} from "../../../../service/ConversationsService";
 import {messageAPI} from "../../../../service/MessageService";
 import {useEffect, useRef, useState} from "react";
 import {MessageModel} from "../../../../entities/MessageModel";
-import { WS_MESSAGE } from "../MainPage";
+import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
 
 const {Search} = Input;
 
-type PropsType = {
-    ws: WebSocket;
-}
 
-export const ChatWindow = (props:PropsType) => {
+export const ChatWindow = () => {
 
     // Store
     const dispatch = useDispatch();
     const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
+    const { registerHandler } = useWebSocket();
     // -----
 
     // Refs
@@ -60,6 +57,19 @@ export const ChatWindow = (props:PropsType) => {
         if (isCreateMessageSuccess)
             setText("");
     }, [isCreateMessageSuccess]);
+    useEffect(() => {
+        // Регистрируем обработчик для сообщений чата
+        const removeHandler = registerHandler('message_created', (data) => {
+            setMessages(prev => {
+                // Проверяем, нет ли уже такого сообщения
+                const exists = prev.some(msg => msg.id === data.entity?.id);
+                return exists ? prev : [...prev, data.entity];
+            });
+            setTimeout(() => handleScrollToBottom(), 100);
+        });
+        // Удаляем обработчик при размонтировании компонента
+        return removeHandler;
+    }, [registerHandler]);
     // -----
 
     // Handlers
@@ -86,14 +96,6 @@ export const ChatWindow = (props:PropsType) => {
     };
     // -----
 
-    // Useful utils
-    props.ws.onmessage = (event) => {
-        let data:WS_MESSAGE = JSON.parse(event.data);
-        setMessages((prev:MessageModel[]) => prev.concat([data.entity]));
-        setTimeout(()=>handleScrollToBottom(), 100);
-    };
-    // -----
-
     return(
         <Flex style={{
             display: 'grid',
@@ -112,7 +114,7 @@ export const ChatWindow = (props:PropsType) => {
                 {messages.map((message, index) => (
                     <Message 
                         key={index}
-                        text={message.text} 
+                        data={message}
                         fromYou={message.sender?.id == currentUser?.id}
                     />
                 ))}

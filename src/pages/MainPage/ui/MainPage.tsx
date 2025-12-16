@@ -1,159 +1,76 @@
+// MainPage.tsx (ваш текущий файл УПРОЩЕННЫЙ)
 import {Flex} from 'antd';
 import {LeftMenu} from './LeftMenu/LeftMenu';
 import {ChatWindow} from './ChatWindow/ChatWindow';
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {userAPI} from "../../../service/UserService";
 import {useDispatch, useSelector} from "react-redux";
 import {setCurrentUser} from "../../../store/slice/GeneralSlice";
 import {RootStateType} from '../../../store/store';
-import {wsHost} from '../../../shared/config/constants';
-import {MessageModel} from "../../../entities/MessageModel";
-
-declare global {
-    interface Window {
-        electronAPI: {
-            executeCommand: (command: string) => Promise<string>;
-        };
-    }
-}
-
-const RECONNECT_INTERVAL = 15000; // 15 секунд
-const MAX_RECONNECT_ATTEMPTS = 10; // Максимальное количество попыток переподключения
-
-export type WS_MESSAGE = {
-    type: string;
-    entity: MessageModel;
-}
+import {useWebSocket} from "../../../app/WebSocketProvider/ui/WebSocketProvider";
 
 const MainPage = () => {
-
-    // Store
     const dispatch = useDispatch();
     const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
-    // -----
 
-    // States
-    const [messagesWs, setMessagesWs] = useState<WebSocket | null>(null);
-    // -----
+    // Используем WebSocket из контекста
+    const { isConnected, registerHandler, sendMessage } = useWebSocket();
 
-    // Web requests
-    const {
-        data: currentUserData,
-        isLoading: isCurrentUserLoading,
-        error: currentUserError,
-        refetch: refetchCurrentUser
-    } = userAPI.useGetCurrentQuery();
-    // -----
+    // Запрос текущего пользователя
+    const { data: currentUserData } = userAPI.useGetCurrentQuery();
 
-    // Effects
+    // Сохраняем пользователя в Redux
     useEffect(() => {
         if (currentUserData) {
-            dispatch(setCurrentUser(currentUserData))
+            dispatch(setCurrentUser(currentUserData));
         }
     }, [currentUserData, dispatch]);
 
     useEffect(() => {
-        if (window.electronAPI) {
-            window.electronAPI.executeCommand('echo "Приложение запущено!"')
-                .then(result => alert('Команда выполнена:' + result))
-                .catch(error => alert('Ошибка:' + error));
-        }
-    }, []);
+        const removeHandler = registerHandler('message', (data: any) => {
+            console.log('Получено сообщение:', data);
+            // Если нужно сохранить в Redux
+            // dispatch({ type: 'chat/NEW_MESSAGE', payload: data.entity });
+        });
 
-    // WebSocket effect - один раз при монтировании
-    useEffect(() => {
-        let isMounted = true;
-        let socket: WebSocket | null = null;
-        let reconnectTimer: NodeJS.Timeout | null = null;
-        let reconnectAttempts = 0;
-        let isConnecting = false;
+        // Обработчик для уведомлений
+        const removeNotificationHandler = registerHandler('notification', (data) => {
+            console.log('Уведомление:', data);
+        });
 
-        const connect = () => {
-            if (!isMounted || isConnecting) return;
-
-            isConnecting = true;
-            console.log(`Подключение WebSocket (попытка ${reconnectAttempts + 1})`);
-
-            try {
-                socket = new WebSocket(`${wsHost}/ws/messages/`);
-
-                socket.onopen = () => {
-                    if (!isMounted) {
-                        socket?.close();
-                        return;
-                    }
-
-                    console.log('WebSocket connected');
-                    isConnecting = false;
-                    reconnectAttempts = 0;
-
-                    if (reconnectTimer) {
-                        clearTimeout(reconnectTimer);
-                        reconnectTimer = null;
-                    }
-
-                    setMessagesWs(socket);
-                };
-
-                socket.onmessage = (event) => {
-                    if (!isMounted) return;
-                    let data:WS_MESSAGE = JSON.parse(event.data);
-
-                };
-
-                socket.onclose = () => {
-                    if (!isMounted) return;
-
-                    console.log('WebSocket disconnected');
-                    isConnecting = false;
-                    setMessagesWs(null);
-
-                    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                        reconnectAttempts++;
-                        console.log(`Переподключение через ${RECONNECT_INTERVAL/1000} секунд...`);
-
-                        reconnectTimer = setTimeout(connect, RECONNECT_INTERVAL);
-                    }
-                };
-
-                socket.onerror = (error) => {
-                    if (!isMounted) return;
-
-                    console.error('WebSocket error:', error);
-                    isConnecting = false;
-                };
-
-            } catch (error) {
-                if (!isMounted) return;
-
-                console.error('Failed to create WebSocket:', error);
-                isConnecting = false;
-
-                if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                    reconnectAttempts++;
-                    reconnectTimer = setTimeout(connect, RECONNECT_INTERVAL);
-                }
-            }
-        };
-        connect();
+        // Очищаем при размонтировании
         return () => {
-            console.log('Очистка WebSocket');
-            isMounted = false;
-            if (reconnectTimer) {
-                clearTimeout(reconnectTimer);
-            }
-            if (socket) {
-                socket.close();
-            }
+            removeHandler();
+            removeNotificationHandler();
         };
-    }, []);
+    }, [registerHandler]);
 
-    return(
-        <Flex style={{background: '#d8e3f4', height: '100vh', overflow: 'hidden'}}>
+    // Отправка тестового сообщения (пример)
+    const testSend = () => {
+        sendMessage({
+            type: 'ping',
+            timestamp: Date.now()
+        });
+    };
+
+    return (
+        <Flex style={{ background: '#d8e3f4', height: '100vh', overflow: 'hidden' }}>
             <LeftMenu />
-            {(selectedConversationId && messagesWs) && <ChatWindow ws={messagesWs}/>}
+            {selectedConversationId && <ChatWindow />}
+
+            <div style={{
+                position: 'fixed',
+                bottom: 10,
+                right: 10,
+                padding: '5px 10px',
+                background: isConnected ? 'green' : 'red',
+                color: 'white',
+                borderRadius: '5px'
+            }}>
+                {isConnected ? 'Online' : 'Offline'}
+            </div>
         </Flex>
-    )
-}
+    );
+};
 
 export default MainPage;

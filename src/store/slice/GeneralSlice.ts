@@ -6,7 +6,7 @@ import {MessageModel} from "../../entities/MessageModel";
 export type CurrentUserModelStateType = {
     user: UserModel | null,
     notificationContextApi: NotificationInstance | null,
-    selectedConversationId: number | null
+    selectedConversationId: number | null,
 }
 
 const initialState: CurrentUserModelStateType = {
