@@ -26,6 +26,6 @@ export const ConversationsList = () => {
             return (<ConversationItem conversation={conversation}/>);
         })}
         {isConversationsLoading && <Spin style={{marginTop: 50}}/>}
-        {conversations?.length == 0 && <Empty style={{marginTop: 50}}/>}
+        {conversations?.length == 0 && <Empty description={"У вас нет начатых чатов"} style={{marginTop: 50}}/>}
     </Flex>
 }

@@ -3,6 +3,9 @@ import {MessageOutlined} from '@ant-design/icons';
 import {UserModel} from "../../../../../entities/UserModel";
 import {conversationsAPI} from "../../../../../service/ConversationsService";
 import {useEffect} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {setSelectedConversationId} from "../../../../../store/slice/GeneralSlice";
+import {RootStateType} from "../../../../../store/store";
 
 const { Text } = Typography;
 
@@ -10,20 +13,39 @@ type PropsType = {
     contact: UserModel;
 }
 
+type ErrorCreateConversationType = {
+    status: number;
+    data: {
+        existing_conversation_id: string[];
+    };
+}
+
 export const ContactItem = (props:PropsType) => {
+
+    // Store
+    const dispatch = useDispatch();
+    const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
+    // -----
 
     // Web requests
     const [createConversation, {
-        isSuccess: isSuccessCreateConversation
+        data: createdConversation,
+        error: errorCreateConversation
     }] = conversationsAPI.useCreateMutation();
     // -----
 
     // Effects
     useEffect(() => {
-        if (isSuccessCreateConversation) {
-
+        if (createdConversation) {
+            dispatch(setSelectedConversationId(createdConversation.id));
         }
-    }, [isSuccessCreateConversation]);
+    }, [createdConversation]);
+    useEffect(() => {
+        if (errorCreateConversation) {
+            let error: ErrorCreateConversationType = errorCreateConversation as unknown as ErrorCreateConversationType;
+            dispatch(setSelectedConversationId(parseInt(error.data.existing_conversation_id[0])));
+        }
+    }, [errorCreateConversation]);
     // -----
 
     // Handlers
@@ -44,7 +66,9 @@ export const ContactItem = (props:PropsType) => {
                     </Flex>
                 </Flex>
             </Flex>
-            <Button type={'link'} onClick={createConversationHandler} icon={<MessageOutlined />}/>
+            {props.contact.id != currentUser?.id &&
+                <Button type={'link'} onClick={createConversationHandler} icon={<MessageOutlined />}/>
+            }
         </Flex>
     )
 }

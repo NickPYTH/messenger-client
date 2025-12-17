@@ -29,5 +29,12 @@ export const conversationsAPI = createApi({
             }),
             invalidatesTags: ['conversations']
         }),
+        delete: build.mutation<void, number>({
+            query: (id) => ({
+                url: `/conversations/${id}/`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['conversations']
+        }),
     })
 });
