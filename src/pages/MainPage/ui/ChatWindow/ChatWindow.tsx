@@ -1,4 +1,4 @@
-import {Button, Divider, Empty, Flex, Input, Popconfirm} from "antd"
+import {Badge, Button, Divider, Empty, Flex, Input, Popconfirm} from "antd"
 import {RootStateType} from "../../../../store/store";
 import {Message} from "./Message";
 import {useDispatch, useSelector} from "react-redux";
@@ -7,8 +7,9 @@ import {messageAPI} from "../../../../service/MessageService";
 import {useEffect, useRef, useState} from "react";
 import {MessageModel} from "../../../../entities/MessageModel";
 import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, FileAddOutlined, SendOutlined } from "@ant-design/icons";
 import {setSelectedConversationId} from "../../../../store/slice/GeneralSlice";
+import TextArea from "antd/es/input/TextArea";
 
 const {Search} = Input;
 
@@ -148,23 +149,16 @@ export const ChatWindow = () => {
                 <div ref={bottomRef} style={{ height: '0px' }} />
             </Flex>
             
-            <div style={{
-                height: 50,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}>
-                <Search
-                    value={text}
-                    onChange={changeTextHandler}
-                    style={{ maxWidth: 600, width: '100%' }}
-                    placeholder="Введите сообщение"
-                    allowClear
-                    loading={isCreateMessageLoading}
-                    enterButton="Отправить"
-                    onSearch={createMessageHandler}
-                />
-            </div>
+            <Flex style={{height: 100}} justify={'center'} align={'center'} gap={'small'}>
+                <TextArea value={text} onChange={changeTextHandler}
+                          style={{ maxWidth: 600, width: '100%'}}
+                          placeholder="Введите сообщение..."
+                          allowClear/>
+                <Badge count={3}>
+                    <Button style={{height: 50, width: 50}} onClick={createMessageHandler} disabled={isCreateMessageLoading} icon={<FileAddOutlined />} />
+                </Badge>
+                <Button style={{height: 50, width: 50}} type={'primary'} onClick={createMessageHandler} disabled={isCreateMessageLoading} icon={<SendOutlined />} />
+            </Flex>
         </Flex>
     )
 }
