@@ -10,6 +10,7 @@ import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvid
 import { DeleteOutlined, FileAddOutlined, SendOutlined } from "@ant-design/icons";
 import {setSelectedConversationId} from "../../../../store/slice/GeneralSlice";
 import TextArea from "antd/es/input/TextArea";
+import {AttachmentModal} from "./AttachmentModal";
 
 const {Search} = Input;
 
@@ -30,6 +31,8 @@ export const ChatWindow = () => {
     // States
     const [text, setText] = useState<string>("");
     const [messages, setMessages] = useState<MessageModel[]>([]);
+    const [visibleAttachmentModal, setVisibleAttachmentModal] = useState(false);
+    const [attachments, setAttachments] = useState<any[]>([]);
     // -----
 
     // Web requests
@@ -116,6 +119,7 @@ export const ChatWindow = () => {
             width: '90%',
             overflow: 'hidden'
         }}>
+            {visibleAttachmentModal && <AttachmentModal visible={visibleAttachmentModal} setVisible={setVisibleAttachmentModal} /> }
             <div style={{width: '100%', height: 49, marginBottom: 2}}>
                 <Flex vertical gap={'small'} justify={'space-between'} style={{height: '100%'}}>
                     <Flex gap={'small'} align={'center'} justify={'end'} style={{height: '100%'}}>
@@ -154,8 +158,8 @@ export const ChatWindow = () => {
                           style={{ maxWidth: 600, width: '100%'}}
                           placeholder="Введите сообщение..."
                           allowClear/>
-                <Badge count={3}>
-                    <Button style={{height: 50, width: 50}} onClick={createMessageHandler} disabled={isCreateMessageLoading} icon={<FileAddOutlined />} />
+                <Badge count={attachments.length}>
+                    <Button style={{height: 50, width: 50}} onClick={() => setVisibleAttachmentModal(true)} disabled={isCreateMessageLoading} icon={<FileAddOutlined />} />
                 </Badge>
                 <Button style={{height: 50, width: 50}} type={'primary'} onClick={createMessageHandler} disabled={isCreateMessageLoading} icon={<SendOutlined />} />
             </Flex>
