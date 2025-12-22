@@ -6,7 +6,7 @@ import {MessageModel} from "../entities/MessageModel";
 export const conversationsAPI = createApi({
     reducerPath: 'conversationsAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${host}/api`,
+        baseUrl: `${host}/messenger/api`,
     }),
     tagTypes: ['conversations'],
     endpoints: (build) => ({

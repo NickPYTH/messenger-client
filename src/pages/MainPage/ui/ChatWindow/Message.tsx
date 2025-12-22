@@ -20,7 +20,7 @@ export const Message = (props:PropsType) => {
                             uid: file.id.toString(),
                             name: file.file_name.length > 37 ? file.file_name.slice(0, 37) : file.file_name,
                             status: 'done',
-                            url: `${host}${file.file_url}`,
+                            url: `${file.file_url}`,
                         }))}
                         showUploadList={{
                             showRemoveIcon: false, // Убираем иконку удаления

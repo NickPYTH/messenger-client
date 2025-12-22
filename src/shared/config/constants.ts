@@ -8,7 +8,7 @@ if (document.location.host.split(':')[1]) {
 } else
     host += ''
 
-export const wsHost = 'ws://localhost:8000';
+export const wsHost = 'ws://localhost:8000/messenger';
 
 export enum CONVERSATION_TYPE {
     PRIVATE="private",

@@ -5,6 +5,7 @@ export type AttachmentModel = {
     mime_type: string;
     uploaded_at: string;
     file_url: string;
+    download_url: string;
 }
 
 export interface CreateMessageDTO {

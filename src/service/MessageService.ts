@@ -11,7 +11,7 @@ export interface CreateMessageWithFilesRequest {
 export const messageAPI = createApi({
     reducerPath: 'messageAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${host}/api`,
+        baseUrl: `${host}/messenger/api`,
     }),
     tagTypes: ['message'],
     endpoints: (build) => ({
@@ -44,7 +44,6 @@ export const messageAPI = createApi({
                     url: `/messages/`,
                     method: 'POST',
                     body: formData,
-                    // Не устанавливаем Content-Type - браузер сделает это автоматически
                 };
             },
             invalidatesTags: ['message']

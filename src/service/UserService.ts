@@ -4,7 +4,7 @@ import {UserModel} from "../entities/UserModel";
 export const userAPI = createApi({
     reducerPath: 'userAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${host}/api`,
+        baseUrl: `${host}/messenger/api`,
     }),
     tagTypes: ['user'],
     endpoints: (build) => ({
