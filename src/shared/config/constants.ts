@@ -8,8 +8,8 @@ if (document.location.host.split(':')[1]) {
 } else
     host += ''
 
-export const wsHost = 'ws://localhost:8000/messenger';
-
+//export const wsHost = 'ws://localhost:8000/messenger';
+export const wsHost = 'wss://sco1-vapp-09.sgp.ru/messenger'
 export enum CONVERSATION_TYPE {
     PRIVATE="private",
     GROUP="group"
