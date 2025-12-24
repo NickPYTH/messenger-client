@@ -1,22 +1,23 @@
-import {Empty, Flex, Spin} from "antd";
+import {Button, Empty, Flex, Spin} from "antd";
 import React, {useEffect, useState} from "react";
 import {ContactItem} from "./ContactItem";
 import {userAPI} from "../../../../../service/UserService";
 import {UserModel} from "../../../../../entities/UserModel";
 import Search from "antd/es/input/Search";
+import {CreateGroupModal} from "./CreateGroupModal";
 
 export const ContactsList = () => {
 
     // States
     const [searchValue, setSearchValue] = useState("");
     const [usersFiltered, setUsersFiltered] = useState<UserModel[]>([]);
+    const [visibleCreateGroupModal, setVisibleCreateGroupModal] = useState(false);
     // -----
 
     // Web requests
     const {
         data: users,
         isLoading: isUsersLoading,
-        error: isUsersLoadingError,
         refetch: refetchUsers
     } = userAPI.useGetAllQuery();
     // -----
@@ -47,12 +48,14 @@ export const ContactsList = () => {
     // -----
 
     return <Flex vertical gap={'small'}>
+        {visibleCreateGroupModal && <CreateGroupModal visible={visibleCreateGroupModal} setVisible={setVisibleCreateGroupModal}/> }
         <Search
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)} style={{padding: 5}}
             placeholder="Поиск"
             onSearch={searchHandler}
         />
+        <Button style={{margin: "0 5px 0 5px"}} onClick={() => setVisibleCreateGroupModal(true)}>Создать группу</Button>
         {isUsersLoading ?
             <Spin style={{marginTop: 50}}/>
             :

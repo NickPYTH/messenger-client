@@ -22,6 +22,14 @@ export const conversationsAPI = createApi({
             }),
             invalidatesTags: ['conversations']
         }),
+        createGroup: build.mutation<ConversationModel, {member_ids: number[], title: string}>({
+            query: (body) => ({
+                url: `/conversations/`,
+                method: 'POST',
+                body: {...body, type: 'group'}
+            }),
+            invalidatesTags: ['conversations']
+        }),
         getMessages: build.mutation<MessageModel[], number>({
             query: (id) => ({
                 url: `/conversations/${id}/messages`,

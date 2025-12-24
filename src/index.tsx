@@ -13,7 +13,7 @@ root.render(
   <React.StrictMode>
     <ReduxProvider>
         <WebSocketProvider
-            url={`${wsHost}/ws/messages/`}
+            url={`${wsHost}/messenger/ws/messages/`}
             onConnectionChange={(connected) => {
                 console.log(connected ? 'Соединение установлено' : 'Соединение потеряно');
             }}
