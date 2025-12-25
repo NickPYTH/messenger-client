@@ -25,7 +25,13 @@ const MainPage = () => {
     return (
         <Flex style={{ background: '#d8e3f4', height: '100vh', overflow: 'hidden' }}>
             <LeftMenu />
-            {selectedConversationId && <ChatWindow />}
+            {selectedConversationId ?
+                <ChatWindow />
+                :
+                <Flex justify={'center'} align={'center'} style={{width: '100%'}}>
+                    Выберите, кому хотели бы написать
+                </Flex>
+            }
 
             {/*<div style={{*/}
             {/*    position: 'fixed',*/}

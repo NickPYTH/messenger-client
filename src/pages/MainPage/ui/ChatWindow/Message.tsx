@@ -183,12 +183,6 @@ export const Message = (props: PropsType) => {
                 label: 'Копировать текст',
                 onClick: handleCopyText,
             },
-            {
-                key: 'reply',
-                icon: <ShareAltOutlined rotate={180} />,
-                label: 'Ответить',
-                onClick: handleReply,
-            },
         ];
 
         // Добавляем пункт для копирования кода, если есть код
@@ -210,14 +204,6 @@ export const Message = (props: PropsType) => {
                 onClick: handleDownloadAttachments,
             });
         }
-
-        // Добавляем пункт для шаринга
-        items.push({
-            key: 'share',
-            icon: <ShareAltOutlined />,
-            label: 'Поделиться',
-            onClick: handleShare,
-        });
 
         // Если сообщение от текущего пользователя, добавляем редактирование и удаление
         if (props.fromYou) {
