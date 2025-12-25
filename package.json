@@ -28,10 +28,12 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
+    "react-syntax-highlighter": "^16.1.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@types/react-syntax-highlighter": "^15.5.13",
     "concurrently": "^8.0.0",
     "electron": "^28.3.3",
     "electron-builder": "^24.0.0",

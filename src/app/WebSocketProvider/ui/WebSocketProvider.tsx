@@ -30,11 +30,9 @@ const WebSocketProvider: React.FC<{
         }
 
         try {
-            console.log('Подключение к WebSocket...');
             const socket = new WebSocket(url);
 
             socket.onopen = () => {
-                console.log('✅ WebSocket подключен');
                 setIsConnected(true);
                 reconnectAttemptsRef.current = 0;
                 onConnectionChange?.(true);
@@ -53,12 +51,11 @@ const WebSocketProvider: React.FC<{
                     const allHandlers = handlersRef.current.get('*') || [];
                     allHandlers.forEach(handler => handler(data));
                 } catch (error) {
-                    console.error('Ошибка обработки сообщения:', error);
+                    console.error(error);
                 }
             };
 
             socket.onclose = (event) => {
-                console.log(`WebSocket закрыт: ${event.code} ${event.reason}`);
                 setIsConnected(false);
                 socketRef.current = null;
                 onConnectionChange?.(false);
@@ -66,18 +63,18 @@ const WebSocketProvider: React.FC<{
                 // Переподключение
                 if (reconnectAttemptsRef.current < maxReconnectAttempts) {
                     reconnectAttemptsRef.current++;
-                    console.log(`Переподключение через ${reconnectInterval/1000}сек (попытка ${reconnectAttemptsRef.current})`);
+                    console.log(`Переподключение через ${reconnectInterval/1000}сек (попытка; ${reconnectAttemptsRef.current})`);
                     setTimeout(connect, reconnectInterval);
                 }
             };
 
             socket.onerror = (error) => {
-                console.error('WebSocket ошибка:', error);
+                console.error(error);
             };
 
             socketRef.current = socket;
         } catch (error) {
-            console.error('Ошибка создания WebSocket:', error);
+            console.error(error);
         }
     }, [url, onConnectionChange]);
 
@@ -131,7 +128,6 @@ const WebSocketProvider: React.FC<{
     );
 };
 
-// Хук для использования WebSocket
 export const useWebSocket = () => {
     const context = useContext(WebSocketContext);
     if (!context) {

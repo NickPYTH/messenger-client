@@ -48,5 +48,12 @@ export const messageAPI = createApi({
             },
             invalidatesTags: ['message']
         }),
+        delete: build.mutation<void, number>({
+            query: (id) => ({
+                url: `/messages/${id}/`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['message']
+        }),
     })
 });

@@ -10,7 +10,6 @@ export const ConversationsList = () => {
     const {
         data: conversations,
         isLoading: isConversationsLoading,
-        error: isConversationsLoadingError,
         refetch: refetchConversations
     } = conversationsAPI.useGetAllQuery();
     // -----

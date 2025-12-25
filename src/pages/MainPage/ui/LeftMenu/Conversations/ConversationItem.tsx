@@ -50,10 +50,10 @@ export const ConversationItem = (props:PropsType) => {
     return(
         <Flex vertical className="chatItem" onClick={selectConversationIdHandler}>
             <Flex align={"center"} gap={'small'}>
-                <Avatar src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
+                <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
                 <Flex vertical justify="space-between">
                     <Text>{props.conversation.title}</Text>
-                    <Text style={{fontSize: 12}}>{fromYou ? "Вы: " : ""}{lastMessage}</Text>
+                    <Text style={{fontSize: 12}}>{fromYou ? "Вы: " : ""}{lastMessage.slice(0, 50)}</Text>
                 </Flex>
             </Flex>
         </Flex>

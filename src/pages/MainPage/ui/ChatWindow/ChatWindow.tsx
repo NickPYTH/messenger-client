@@ -76,7 +76,7 @@ export const ChatWindow = () => {
 
     useEffect(() => {
         // Регистрируем обработчик для сообщений чата
-        const removeHandler = registerHandler('message_created', (data) => {
+        const addMessageHandler = registerHandler('message_created', (data) => {
             setMessages(prev => {
                 // Проверяем, нет ли уже такого сообщения
                 const exists = prev.some(msg => msg.id === data.entity?.id);
@@ -85,7 +85,18 @@ export const ChatWindow = () => {
             setTimeout(() => handleScrollToBottom(), 100);
         });
         // Удаляем обработчик при размонтировании компонента
-        return removeHandler;
+        return addMessageHandler;
+    }, [registerHandler]);
+
+    useEffect(() => {
+        // Регистрируем обработчик для сообщений чата
+        const deleteMessageHandler = registerHandler('message_deleted', (data) => {
+            setMessages(prev => {
+                return prev.filter((msg:MessageModel) => msg.id != data.entity?.id);
+            });
+            setTimeout(() => handleScrollToBottom(), 100);
+        });
+        return deleteMessageHandler;
     }, [registerHandler]);
 
     useEffect(() => {
