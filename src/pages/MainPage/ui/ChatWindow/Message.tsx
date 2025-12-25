@@ -1,34 +1,22 @@
-import { MessageModel } from "../../../../entities/MessageModel";
-import { AttachmentModel } from "../../../../entities/AttachmentModel";
-import { host } from "../../../../shared/config/constants";
-import { isLikelyCode } from "../../../../shared/config/utils.py";
-import {
-    Flex,
-    Upload,
-    Dropdown,
-    MenuProps,
-    message as antdMessage,
-    Modal,
-    Button,
-    Space,
-    Typography
-} from "antd";
+import {MessageModel} from "../../../../entities/MessageModel";
+import {AttachmentModel} from "../../../../entities/AttachmentModel";
+import {isLikelyCode} from "../../../../shared/config/utils.py";
+import {Button, Dropdown, Flex, MenuProps, message as antdMessage, Modal, Typography, Upload} from "antd";
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import React, { JSX, useState, useRef } from "react";
+import {docco} from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import React, {useRef, useState} from "react";
 import {
-    CopyOutlined,
-    EditOutlined,
-    DeleteOutlined,
-    ShareAltOutlined,
     CodeOutlined,
+    CopyOutlined,
+    DeleteOutlined,
     DownloadOutlined,
+    EditOutlined,
     MoreOutlined
 } from '@ant-design/icons';
-import {conversationsAPI} from "../../../../service/ConversationsService";
-import {messageAPI} from "../../../../service/MessageService";
+import {DeleteMessageModal} from "./DeleteMessageModal";
+import {EditMessageModal} from "./EditMessageModal";
 
-const { Text } = Typography;
+const {Text} = Typography;
 
 type PropsType = {
     data: MessageModel;
@@ -43,15 +31,13 @@ export const Message = (props: PropsType) => {
 
     // States
     const [contextMenuVisible, setContextMenuVisible] = useState(false);
-    const [copyModalVisible, setCopyModalVisible] = useState(false);
-    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [deleteMessageModalVisible, setDeleteMessageModalVisible] = useState(false);
+    const [editMessageModalVisible, setEditMessageModalVisible] = useState(false);
     const messageRef = useRef<HTMLDivElement>(null);
     // -----
 
     // Web requests
-    const [deleteMessage, {
-        isSuccess: isSuccessDeleteMessage,
-    }] = messageAPI.useDeleteMutation();
+
     // -----
 
     // Handlers
@@ -87,11 +73,6 @@ export const Message = (props: PropsType) => {
                     antdMessage.success('Текст скопирован');
                     props.onCopy?.(props.data.text);
                 })
-                .catch(() => {
-                    setCopyModalVisible(true);
-                });
-        } else {
-            setCopyModalVisible(true);
         }
         setContextMenuVisible(false);
     };
@@ -112,7 +93,7 @@ export const Message = (props: PropsType) => {
                         Modal.info({
                             title: 'Скопируйте код',
                             content: (
-                                <div style={{ marginTop: 16 }}>
+                                <div style={{marginTop: 16}}>
                                     <SyntaxHighlighter language={detectLanguage(allCode)} style={docco}>
                                         {allCode}
                                     </SyntaxHighlighter>
@@ -126,38 +107,11 @@ export const Message = (props: PropsType) => {
         setContextMenuVisible(false);
     };
     const handleEdit = () => {
-        props.onEdit?.(props.data);
+        setEditMessageModalVisible(true);
         setContextMenuVisible(false);
     };
     const handleDelete = () => {
-        setDeleteModalVisible(true);
-        setContextMenuVisible(false);
-    };
-    const confirmDelete = () => {
-        if (props.data.id) {
-            deleteMessage(props.data.id)
-            setDeleteModalVisible(false);
-            antdMessage.success('Сообщение удалено');
-        }
-    };
-    const handleReply = () => {
-        props.onReply?.(props.data);
-        setContextMenuVisible(false);
-    };
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Сообщение из чата',
-                text: props.data.text.length > 100
-                    ? `${props.data.text.substring(0, 100)}...`
-                    : props.data.text,
-                url: window.location.href,
-            });
-        } else {
-            const shareText = `Сообщение: ${props.data.text}\n\nВремя: ${props.data.sent_at}`;
-            navigator.clipboard.writeText(shareText)
-                .then(() => antdMessage.success('Ссылка на сообщение скопирована'));
-        }
+        setDeleteMessageModalVisible(true);
         setContextMenuVisible(false);
     };
     const handleDownloadAttachments = () => {
@@ -179,7 +133,7 @@ export const Message = (props: PropsType) => {
         const items: MenuProps['items'] = [
             {
                 key: 'copy-text',
-                icon: <CopyOutlined />,
+                icon: <CopyOutlined/>,
                 label: 'Копировать текст',
                 onClick: handleCopyText,
             },
@@ -189,7 +143,7 @@ export const Message = (props: PropsType) => {
         if (props.data.text.includes('```') || isLikelyCode(props.data.text)) {
             items.splice(1, 0, {
                 key: 'copy-code',
-                icon: <CodeOutlined />,
+                icon: <CodeOutlined/>,
                 label: 'Копировать код',
                 onClick: handleCopyCode,
             });
@@ -199,7 +153,7 @@ export const Message = (props: PropsType) => {
         if (props.data.attachments && props.data.attachments.length > 0) {
             items.push({
                 key: 'download',
-                icon: <DownloadOutlined />,
+                icon: <DownloadOutlined/>,
                 label: `Скачать файлы (${props.data.attachments.length})`,
                 onClick: handleDownloadAttachments,
             });
@@ -208,16 +162,16 @@ export const Message = (props: PropsType) => {
         // Если сообщение от текущего пользователя, добавляем редактирование и удаление
         if (props.fromYou) {
             items.push(
-                { type: 'divider' },
+                {type: 'divider'},
                 {
                     key: 'edit',
-                    icon: <EditOutlined />,
+                    icon: <EditOutlined/>,
                     label: 'Редактировать',
                     onClick: handleEdit,
                 },
                 {
                     key: 'delete',
-                    icon: <DeleteOutlined />,
+                    icon: <DeleteOutlined/>,
                     label: 'Удалить',
                     danger: true,
                     onClick: handleDelete,
@@ -261,8 +215,13 @@ export const Message = (props: PropsType) => {
 
     return (
         <>
+            {deleteMessageModalVisible &&
+                <DeleteMessageModal data={props.data} setVisible={setDeleteMessageModalVisible}
+                                    visible={deleteMessageModalVisible}/>}
+            {editMessageModalVisible && <EditMessageModal data={props.data} setVisible={setEditMessageModalVisible}
+                                                          visible={editMessageModalVisible}/>}
             <Dropdown
-                menu={{ items: getMenuItems() }}
+                menu={{items: getMenuItems()}}
                 trigger={['contextMenu']}
                 open={contextMenuVisible}
                 onOpenChange={setContextMenuVisible}
@@ -292,7 +251,7 @@ export const Message = (props: PropsType) => {
                         }}>
                             <Button
                                 type="text"
-                                icon={<MoreOutlined />}
+                                icon={<MoreOutlined/>}
                                 size="small"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -344,49 +303,6 @@ export const Message = (props: PropsType) => {
                     </Flex>
                 </div>
             </Dropdown>
-
-            {/* Модальное окно для копирования текста */}
-            <Modal
-                title="Скопируйте текст"
-                open={copyModalVisible}
-                onCancel={() => setCopyModalVisible(false)}
-                footer={[
-                    <Button key="close" onClick={() => setCopyModalVisible(false)}>
-                        Закрыть
-                    </Button>,
-                ]}
-            >
-                <div style={{ marginTop: 16 }}>
-                    <Text copyable={{ text: props.data.text }}>
-                        {props.data.text.length > 500
-                            ? `${props.data.text.substring(0, 500)}...`
-                            : props.data.text}
-                    </Text>
-                </div>
-            </Modal>
-
-            {/* Модальное окно подтверждения удаления */}
-            <Modal
-                title="Подтверждение удаления"
-                open={deleteModalVisible}
-                onOk={confirmDelete}
-                onCancel={() => setDeleteModalVisible(false)}
-                okText="Удалить"
-                cancelText="Отмена"
-                okButtonProps={{ danger: true }}
-            >
-                <p>Вы уверены, что хотите удалить это сообщение?</p>
-                <div style={{
-                    padding: '8px',
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: '4px',
-                    marginTop: '8px'
-                }}>
-                    {props.data.text.length > 100
-                        ? `${props.data.text.substring(0, 100)}...`
-                        : props.data.text}
-                </div>
-            </Modal>
         </>
     );
 };

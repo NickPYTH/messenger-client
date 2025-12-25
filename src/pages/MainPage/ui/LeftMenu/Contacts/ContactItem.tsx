@@ -25,6 +25,7 @@ export const ContactItem = (props:PropsType) => {
     // Store
     const dispatch = useDispatch();
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
+    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
     // -----
 
     // Web requests
@@ -56,9 +57,12 @@ export const ContactItem = (props:PropsType) => {
     // -----
 
     return(
-        <Flex className="chatItem" justify={'space-between'} align={'center'}>
+        <Flex
+            className="chatItem"
+            justify={'space-between'}
+            align={'center'}>
             <Flex align={"center"} gap={'small'}>
-                <Avatar src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
+                <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
                 <Flex gap={'small'} align={'center'}>
                     <Flex vertical justify="space-between">
                         <Text>{props.contact.profile.last_name} {props.contact.profile.first_name} {props.contact.profile.second_name}</Text>

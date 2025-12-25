@@ -48,7 +48,11 @@ export const ConversationItem = (props:PropsType) => {
     // -----
 
     return(
-        <Flex vertical className="chatItem" onClick={selectConversationIdHandler}>
+        <Flex
+            vertical
+            className="chatItem"
+            style={{background: selectedConversationId == props.conversation.id?"#d7e1f2":"inherit"}}
+            onClick={selectConversationIdHandler}>
             <Flex align={"center"} gap={'small'}>
                 <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
                 <Flex vertical justify="space-between">

@@ -1,24 +1,46 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
 
 // Важно объявить переменные глобально, чтобы сборщик мусора их не удалил
 let tray = null;
 let mainWindow = null;
 
+// 1. НОВОЕ: Конфигурация WebRTC (укажите ваш локальный Coturn)
+const WEBRTC_CONFIG = {
+  iceServers: [
+    {
+      urls: ['turn:localhost:3478'], // Адрес вашего локального Coturn
+      username: 'testuser',          // Логин из конфига Coturn
+      credential: 'testpassword'     // Пароль из конфига Coturn
+    },
+    {
+      urls: ['stun:stun.l.google.com:19302'] // Резервный STUN
+    }
+  ]
+};
+
 function createWindow() {
+  const preloadPath = path.join(__dirname, 'preload.js');
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     // Если у вас frameless-окно, это не помешает работе
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: true,
+      // 2. НОВОЕ: Разрешаем доступ к desktopCapturer из рендерера
+      enableRemoteModule: true,
+      webSecurity: false, // Для локальной разработки (можно отключить в продакшене)
+      preload: preloadPath,
     }
   });
 
-  mainWindow.loadURL('http://localhost:3000'); // Загружайте свой React-интерфейс
+  mainWindow.loadURL('http://localhost:3000/sender/'); // Загружайте свой React-интерфейс
 
   Menu.setApplicationMenu(null);
+
+  // 3. НОВОЕ: Открываем DevTools для отладки
+  mainWindow.webContents.openDevTools();
 
   // Перехватываем событие закрытия окна
   mainWindow.on('close', (event) => {
@@ -26,10 +48,6 @@ function createWindow() {
     if (!app.isQuitting) {
       event.preventDefault();
       mainWindow.hide(); // Скрываем окно
-      
-      // Опционально: можно убрать иконку из панели задач (на Windows)
-      // mainWindow.setSkipTaskbar(true);
-      
       return false;
     }
   });
@@ -46,27 +64,36 @@ function createTray() {
   } catch (error) {
     // Если иконка не найдена, можно создать простую или использовать встроенную
     console.error('Tray icon not found, using default.');
-    trayImage = nativeImage.createFromDataURL('data:image/png;base64,...'); // Простая заглушка
+    trayImage = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='); // Простая заглушка
   }
-  
+
   // Ресайзим иконку под нужный размер (обычно 16x16 или 32x32)
   trayImage = trayImage.resize({ width: 16, height: 16 });
-  
+
   tray = new Tray(trayImage);
   tray.setToolTip('Корпоративный мессенджер'); // Текст при наведении
 
-  // Создаем контекстное меню для иконки в трее
+  // Создаем контекстное меню для иконки в трея
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Открыть',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
-          // mainWindow.setSkipTaskbar(false); // Возвращаем в панель задач, если убирали
         }
       }
     },
-    { type: 'separator' }, // Разделительная линия
+    { type: 'separator' },
+    {
+      label: 'Тест захвата экрана',
+      click: () => {
+        // 4. НОВОЕ: Быстрый тест захвата экрана из трея
+        if (mainWindow) {
+          mainWindow.webContents.send('test-screen-share');
+        }
+      }
+    },
+    { type: 'separator' },
     {
       label: 'Выйти',
       click: () => {
@@ -77,7 +104,7 @@ function createTray() {
   ]);
 
   tray.setContextMenu(contextMenu);
-  
+
   // Дополнительно: показ окна по клику на иконку (опционально)
   tray.on('click', () => {
     if (mainWindow) {
@@ -90,10 +117,54 @@ function createTray() {
   });
 }
 
+// 5. НОВОЕ: IPC обработчики для WebRTC
+function setupIPCHandlers() {
+  // 1. Тестовый обработчик для проверки связи
+  ipcMain.handle('test-connection', async (event) => {
+    console.log('Получен тестовый запрос от React');
+    return {
+      status: 'success',
+      message: 'Связь Electron-React работает!',
+      timestamp: new Date().toISOString()
+    };
+  });
+
+  // 2. Обработчик для получения источников экрана
+  ipcMain.handle('get-desktop-sources', async (event, options) => {
+    try {
+      console.log('Запрос источников экрана...');
+      const sources = await desktopCapturer.getSources({
+        types: ['screen', 'window'],
+        thumbnailSize: { width: 150, height: 150 }
+      });
+      console.log(`Найдено ${sources.length} источников`);
+      return sources;
+    } catch (error) {
+      console.error('Ошибка desktopCapturer:', error);
+      return [];
+    }
+  });
+
+  // 3. Обработчик для выбора источника
+  ipcMain.handle('select-source', (event, sourceId) => {
+    console.log('Выбран источник:', sourceId);
+    if (mainWindow) {
+      mainWindow.webContents.send('source-selected', sourceId);
+    }
+    return true;
+  });
+
+  // 4. Добавьте также обработку других событий если нужно
+  ipcMain.on('log-message', (event, message) => {
+    console.log('Сообщение от React:', message);
+  });
+}
+
 // Инициализация приложения
 app.whenReady().then(() => {
   createWindow();
   createTray();
+  setupIPCHandlers(); // 6. НОВОЕ: Инициализируем обработчики IPC
 
   // Для macOS: если нет открытых окон, создать новое по активации приложения
   app.on('activate', () => {
@@ -103,10 +174,7 @@ app.whenReady().then(() => {
 
 // Важно: предотвращаем выход из приложения при закрытии всех окон
 app.on('window-all-closed', (event) => {
-  // На MacOS приложения обычно не закрываются, даже когда все окна закрыты
   if (process.platform !== 'darwin') {
-    // Мы не вызываем app.quit(), поэтому приложение не закроется
-    // Вместо этого окна уже скрыты в трей
     event.preventDefault();
   }
 });
