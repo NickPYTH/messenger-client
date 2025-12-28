@@ -5,7 +5,6 @@ import {ReduxProvider} from './app/ReduxProvider'
 import { Router } from './component/Router';
 import { WebSocketProvider } from './app/WebSocketProvider';
 import {wsHost} from "./shared/config/constants";
-import ScreenShare from "./App";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -13,14 +12,14 @@ const root = ReactDOM.createRoot(
 root.render(
     <><React.StrictMode>
         <ReduxProvider>
-            {/*<WebSocketProvider*/}
-            {/*    url={`${wsHost}/messenger/ws/messages/`}*/}
-            {/*    onConnectionChange={(connected) => {*/}
-            {/*        console.log(connected ? 'Соединение установлено' : 'Соединение потеряно');*/}
-            {/*    }}*/}
-            {/*>*/}
+            <WebSocketProvider
+                url={`${wsHost}/messenger/ws/messages/`}
+                onConnectionChange={(connected) => {
+                    console.log(connected ? 'Соединение установлено' : 'Соединение потеряно');
+                }}
+            >
                 <Router/>
-            {/*</WebSocketProvider>*/}
+            </WebSocketProvider>
         </ReduxProvider>
     </React.StrictMode></>
 );

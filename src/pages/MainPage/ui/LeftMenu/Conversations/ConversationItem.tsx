@@ -1,7 +1,7 @@
 import {Avatar, Flex, Typography} from "antd"
 import {ConversationModel} from "../../../../../entities/ConversationModel";
 import {useDispatch, useSelector} from "react-redux";
-import {setSelectedConversationId} from "../../../../../store/slice/GeneralSlice";
+import {setSelectedConversation} from "../../../../../store/slice/GeneralSlice";
 import {useEffect, useState} from "react";
 import {RootStateType} from "../../../../../store/store";
 import {useWebSocket} from "../../../../../app/WebSocketProvider/ui/WebSocketProvider";
@@ -17,7 +17,7 @@ export const ConversationItem = (props:PropsType) => {
 
     // Store
     const dispatch = useDispatch();
-    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
+    const selectedConversation = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
     const [lastMessage, setLastMessage] = useState<string>(props.conversation.last_message?.text ?? "");
     const [fromYou, setFromYou] = useState(props.conversation.last_message?.sender?.id == currentUser?.id);
@@ -40,10 +40,10 @@ export const ConversationItem = (props:PropsType) => {
 
     // Handlers
     const selectConversationIdHandler = () => {
-        if (selectedConversationId == props.conversation.id)
-            dispatch(setSelectedConversationId(null));
+        if (selectedConversation?.id == props.conversation.id)
+            dispatch(setSelectedConversation(null));
         else
-            dispatch(setSelectedConversationId(props.conversation.id));
+            dispatch(setSelectedConversation(props.conversation));
     }
     // -----
 
@@ -51,7 +51,7 @@ export const ConversationItem = (props:PropsType) => {
         <Flex
             vertical
             className="chatItem"
-            style={{background: selectedConversationId == props.conversation.id?"#d7e1f2":"inherit"}}
+            style={{background: selectedConversation?.id == props.conversation.id?"#d7e1f2":"inherit", marginRight: 3, marginLeft: 3}}
             onClick={selectConversationIdHandler}>
             <Flex align={"center"} gap={'small'}>
                 <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>

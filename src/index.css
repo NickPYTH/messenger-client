@@ -71,7 +71,6 @@ code {
 
 .chatItem:hover {
   background-color: #ebebeb;
-  border-radius: 0px;
 }
 
 /* features/chat/ui/Message/Message.module.css */

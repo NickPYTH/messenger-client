@@ -183,8 +183,6 @@ export const Message = (props: PropsType) => {
     };
     // Основная функция форматирования текста сообщения (остается без изменений)
     const formatMessageText = (text: string) => {
-        // ... (ваш существующий код форматирования) ...
-        // Оставляем ваш код форматирования без изменений
         if (isLikelyCode(text)) {
             const language = detectLanguage(text);
             return (
@@ -206,9 +204,14 @@ export const Message = (props: PropsType) => {
                 </SyntaxHighlighter>
             );
         }
-
-        // ... остальной код форматирования ...
-
+        else if (/https?:\/\/[^\/]+\/receiver\?room=/.test(text))
+            return <Flex vertical gap={'small'}>
+                <Text>Моя транляция</Text>
+                <Flex gap={'small'}>
+                    <Button onClick={() => window.open(text, '_blank')}>Подключиться</Button>
+                    <Button onClick={() => navigator.clipboard.writeText(text)}>Скопировать ссылку</Button>
+                </Flex>
+            </Flex>
         return <span>{text}</span>;
     };
     // -----

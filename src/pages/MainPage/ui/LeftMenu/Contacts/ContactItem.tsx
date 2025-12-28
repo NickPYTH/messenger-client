@@ -4,7 +4,7 @@ import {UserModel} from "../../../../../entities/UserModel";
 import {conversationsAPI} from "../../../../../service/ConversationsService";
 import {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {setSelectedConversationId} from "../../../../../store/slice/GeneralSlice";
+import {setSelectedConversation} from "../../../../../store/slice/GeneralSlice";
 import {RootStateType} from "../../../../../store/store";
 
 const { Text } = Typography;
@@ -25,7 +25,7 @@ export const ContactItem = (props:PropsType) => {
     // Store
     const dispatch = useDispatch();
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
-    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
+    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
     // -----
 
     // Web requests
@@ -38,13 +38,13 @@ export const ContactItem = (props:PropsType) => {
     // Effects
     useEffect(() => {
         if (createdConversation) {
-            dispatch(setSelectedConversationId(createdConversation.id));
+            dispatch(setSelectedConversation(createdConversation));
         }
     }, [createdConversation]);
     useEffect(() => {
         if (errorCreateConversation) {
             let error: ErrorCreateConversationType = errorCreateConversation as unknown as ErrorCreateConversationType;
-            dispatch(setSelectedConversationId(parseInt(error.data.existing_conversation_id[0])));
+            //dispatch(setSelectedConversation(parseInt(error.data.existing_conversation_id[0])));
         }
     }, [errorCreateConversation]);
     // -----

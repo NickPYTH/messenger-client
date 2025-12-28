@@ -35,12 +35,12 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadURL('http://localhost:3000/sender/'); // Загружайте свой React-интерфейс
+  mainWindow.loadURL('http://localhost:3000/messenger/'); // Загружайте свой React-интерфейс
 
   Menu.setApplicationMenu(null);
 
   // 3. НОВОЕ: Открываем DevTools для отладки
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 
   // Перехватываем событие закрытия окна
   mainWindow.on('close', (event) => {

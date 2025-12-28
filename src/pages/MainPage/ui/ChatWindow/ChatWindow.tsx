@@ -1,23 +1,32 @@
-import { Badge, Button, Divider, Empty, Flex, Input, Popconfirm, message as antdMessage } from "antd"
-import { RootStateType } from "../../../../store/store";
-import { Message } from "./Message";
-import { useDispatch, useSelector } from "react-redux";
-import { conversationsAPI } from "../../../../service/ConversationsService";
-import { messageAPI } from "../../../../service/MessageService";
-import { useEffect, useRef, useState } from "react";
-import { MessageModel } from "../../../../entities/MessageModel";
-import { useWebSocket } from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
-import { DeleteOutlined, FileAddOutlined, SendOutlined, PaperClipOutlined, EyeOutlined } from "@ant-design/icons";
-import { setSelectedConversationId } from "../../../../store/slice/GeneralSlice";
+import {Avatar, Badge, Button, Divider, Empty, Flex, message as antdMessage, Popconfirm, Typography} from "antd"
+import {RootStateType} from "../../../../store/store";
+import {Message} from "./Message";
+import {useDispatch, useSelector} from "react-redux";
+import {conversationsAPI} from "../../../../service/ConversationsService";
+import {messageAPI} from "../../../../service/MessageService";
+import {useEffect, useRef, useState} from "react";
+import {MessageModel} from "../../../../entities/MessageModel";
+import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
+import {
+    DeleteOutlined,
+    DesktopOutlined,
+    EyeOutlined,
+    FileAddOutlined,
+    PaperClipOutlined,
+    SendOutlined
+} from "@ant-design/icons";
+import {setSelectedConversation} from "../../../../store/slice/GeneralSlice";
 import TextArea from "antd/es/input/TextArea";
-import { AttachmentModal } from "./AttachmentModal";
+import {AttachmentModal} from "./AttachmentModal";
 import {FileAttachment} from "../../../../entities/AttachmentModel";
+import { ScreenShareModal } from "../../../../ScreenShareModal";
 
+const {Text} = Typography;
 
 export const ChatWindow = () => {
     // Store
     const dispatch = useDispatch();
-    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
+    const selectedConversation = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
     const { registerHandler } = useWebSocket();
     // -----
@@ -30,6 +39,7 @@ export const ChatWindow = () => {
     const [text, setText] = useState<string>("");
     const [messages, setMessages] = useState<MessageModel[]>([]);
     const [visibleAttachmentModal, setVisibleAttachmentModal] = useState(false);
+    const [visibleScreenShareModal, setVisibleScreenShareModal] = useState(false);
     const [attachments, setAttachments] = useState<FileAttachment[]>([]);
     // -----
 
@@ -38,15 +48,12 @@ export const ChatWindow = () => {
         isSuccess: isCreateMessageSuccess,
         isLoading: isCreateMessageLoading
     }] = messageAPI.useCreateMutation();
-
     const [createMessageWithFiles, {
         isLoading: isCreateMessageWithFilesLoading
     }] = messageAPI.useCreateWithFilesMutation();
-
     const [getConversationMessages, {
         data: messagesFromRequest,
     }] = conversationsAPI.useGetMessagesMutation();
-
     const [deleteConversation, {
         isSuccess: isDeleteConversationSuccess,
     }] = conversationsAPI.useDeleteMutation();
@@ -58,9 +65,9 @@ export const ChatWindow = () => {
 
     // Effects
     useEffect(() => {
-        if (selectedConversationId)
-            getConversationMessages(selectedConversationId);
-    }, [selectedConversationId]);
+        if (selectedConversation)
+            getConversationMessages(selectedConversation.id);
+    }, [selectedConversation]);
 
     useEffect(() => {
         if (messagesFromRequest) {
@@ -101,7 +108,7 @@ export const ChatWindow = () => {
 
     useEffect(() => {
         if (isDeleteConversationSuccess)
-            dispatch(setSelectedConversationId(null));
+            dispatch(setSelectedConversation(null));
     }, [isDeleteConversationSuccess]);
     // -----
 
@@ -116,7 +123,7 @@ export const ChatWindow = () => {
             return;
         }
 
-        if (!selectedConversationId) {
+        if (!selectedConversation) {
             antdMessage.error('Выберите беседу');
             return;
         }
@@ -129,7 +136,7 @@ export const ChatWindow = () => {
                     .map(att => att.originFileObj as File);
 
                 await createMessageWithFiles({
-                    conversation: selectedConversationId,
+                    conversation: selectedConversation.id,
                     text: text.trim() || undefined,
                     files: files.length > 0 ? files : undefined
                 }).unwrap();
@@ -139,13 +146,10 @@ export const ChatWindow = () => {
             } else {
                 // Отправляем только текстовое сообщение
                 let message: MessageModel = {
-                    conversation: selectedConversationId,
+                    conversation: selectedConversation.id,
                     text: text.trim()
                 };
                 await createMessage(message).unwrap();
-
-                // Успешная отправка текста
-                antdMessage.success('Сообщение отправлено');
             }
 
             // Сбрасываем состояние
@@ -177,8 +181,8 @@ export const ChatWindow = () => {
     };
 
     const deleteConversationHandler = () => {
-        if (selectedConversationId)
-            deleteConversation(selectedConversationId);
+        if (selectedConversation)
+            deleteConversation(selectedConversation.id);
     };
 
     const handleFilesSelected = (files: FileAttachment[]) => {
@@ -201,7 +205,6 @@ export const ChatWindow = () => {
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     };
-    // -----
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -209,6 +212,17 @@ export const ChatWindow = () => {
             createMessageHandler();
         }
     };
+
+    const sendInviteLinkHandler = async (text:string) => {
+        if (selectedConversation) {
+            let message: MessageModel = {
+                conversation: selectedConversation.id,
+                text
+            };
+            await createMessage(message).unwrap();
+        }
+    }
+    // -----
 
     return (
         <Flex style={{
@@ -219,6 +233,13 @@ export const ChatWindow = () => {
             width: '90%',
             overflow: 'hidden'
         }}>
+            {visibleScreenShareModal &&
+                <ScreenShareModal
+                    visible={visibleScreenShareModal}
+                    setVisible={setVisibleScreenShareModal}
+                    sendInviteLinkHandler={sendInviteLinkHandler}
+                />
+            }
             {visibleAttachmentModal && (
                 <AttachmentModal
                     visible={visibleAttachmentModal}
@@ -229,17 +250,20 @@ export const ChatWindow = () => {
             )}
 
             <div style={{ width: '100%', height: 49, marginBottom: 2 }}>
-                <Flex vertical gap={'small'} justify={'space-between'} style={{ height: '100%' }}>
+                <Flex gap={'small'} justify={'space-between'} align={'center'} style={{ height: '100%' }}>
+                    <Flex gap={'small'} align={'center'}>
+                        <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
+                        <Text strong>{selectedConversation?.title}</Text>
+                    </Flex>
                     <Flex gap={'small'} align={'center'} justify={'end'} style={{ height: '100%' }}>
+                        <Button type='primary' icon={<DesktopOutlined />} onClick={() => setVisibleScreenShareModal(true)}/>
                         <Popconfirm
                             title={"Вы точно хотите удалить переписку?"}
                             okText={"Да"}
                             cancelText={"Отменить"}
                             onConfirm={deleteConversationHandler}
                         >
-                            <Button type='primary' danger icon={<DeleteOutlined />}>
-                                Удалить переписку
-                            </Button>
+                            <Button type='primary' danger icon={<DeleteOutlined />}/>
                         </Popconfirm>
                     </Flex>
                 </Flex>

@@ -11,7 +11,7 @@ import {useWebSocket} from "../../../app/WebSocketProvider/ui/WebSocketProvider"
 
 const MainPage = () => {
     const dispatch = useDispatch();
-    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversationId);
+    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
 
     const { isConnected, registerHandler, sendMessage } = useWebSocket();
     const { data: currentUserData } = userAPI.useGetCurrentQuery();

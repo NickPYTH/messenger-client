@@ -2,17 +2,18 @@ import {createSlice} from "@reduxjs/toolkit";
 import {NotificationInstance} from "antd/es/notification/interface";
 import {UserModel} from "../../entities/UserModel";
 import {MessageModel} from "../../entities/MessageModel";
+import {ConversationModel} from "../../entities/ConversationModel";
 
 export type CurrentUserModelStateType = {
     user: UserModel | null,
     notificationContextApi: NotificationInstance | null,
-    selectedConversationId: number | null,
+    selectedConversation: ConversationModel | null,
 }
 
 const initialState: CurrentUserModelStateType = {
     user: null,
     notificationContextApi: null,
-    selectedConversationId: null,
+    selectedConversation: null,
 }
 
 const generalSlice = createSlice({
@@ -25,15 +26,15 @@ const generalSlice = createSlice({
         setCurrentUser: (state, action: { type: string, payload: UserModel }) => {
             state.user = action.payload;
         },
-        setSelectedConversationId: (state, action: {type: string, payload: number | null}) => {
-            state.selectedConversationId = action.payload;
+        setSelectedConversation: (state, action: {type: string, payload: ConversationModel | null}) => {
+            state.selectedConversation = action.payload;
         },
     }
 });
 
 export const {setCurrentUser,
     setNotificationContextApi,
-    setSelectedConversationId,
+    setSelectedConversation,
 } = generalSlice.actions;
 
 export default generalSlice.reducer;
