@@ -22,8 +22,8 @@ const WEBRTC_CONFIG = {
 function createWindow() {
   const preloadPath = path.join(__dirname, 'preload.js');
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 900,
+    height: 700,
     // Если у вас frameless-окно, это не помешает работе
     webPreferences: {
       nodeIntegration: true,
@@ -40,7 +40,7 @@ function createWindow() {
   Menu.setApplicationMenu(null);
 
   // 3. НОВОЕ: Открываем DevTools для отладки
-  //mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   // Перехватываем событие закрытия окна
   mainWindow.on('close', (event) => {

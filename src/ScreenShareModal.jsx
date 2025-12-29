@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {Flex, Modal} from "antd";
 
 const WEBRTC_CONFIG = {
@@ -28,12 +28,33 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
     const [status, setStatus] = useState('Ожидание...');
     const peerConnectionRef = useRef(null);
     const localVideoRef = useRef(null);
+    const newWatcher = useRef(null);
+
+    const startBtn = useRef(null);
+    const stopBtn = useRef(null);
 
     // Новые состояния для комнат
     const [roomName, setRoomName] = useState('');
     const [roomId, setRoomId] = useState('');
     const [viewers, setViewers] = useState(0);
     const [isSharing, setIsSharing] = useState(false);
+
+    useEffect(() => {
+        // Создаем интервал
+        const intervalId = setInterval(() => {
+            console.log('Обновляю оффер!', startBtn.current);
+            if (startBtn && stopBtn){
+                stopBtn.current.click();
+                setTimeout(() => startBtn.current.click(), 1000);
+            }
+        }, 35000);
+
+        // Важно: очищаем интервал при размонтировании компонента
+        return () => {
+            clearInterval(intervalId);
+            console.log('Таймер очищен');
+        };
+    }, []);
 
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080');
@@ -48,7 +69,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
         socket.onmessage = async (event) => {
             try {
                 const data = JSON.parse(event.data);
-                console.log('📨 Сообщение от сервера:', data.type);
+                console.log('Сообщение от сервера:', data.type);
 
                 switch (data.type) {
                     case 'room-created':
@@ -58,7 +79,10 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
 
                     case 'viewer-joined':
                         setViewers(prev => prev + 1);
-                        console.log(`👤 Новый зритель: ${data.viewerId}`);
+                        console.log(`Новый зритель: ${data.viewerId}`);
+                        stopSharing();
+                        newWatcher.current = data.viewerId;
+                        setTimeout(() => startBtn.current.click(), 1000);
                         break;
 
                     case 'answer':
@@ -177,8 +201,8 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                     mandatory: {
                         chromeMediaSource: 'desktop',
                         chromeMediaSourceId: finalSourceId,
-                        minFrameRate: 5,
-                        maxFrameRate: 30
+                        minFrameRate: 3,
+                        maxFrameRate: 5
                     }
                 }
             };
@@ -224,7 +248,6 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
             setTimeout(() => {
                 createPeerConnection(stream);
             }, 100);
-
 
 
         } catch (error) {
@@ -377,72 +400,132 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                loading={false}
                footer={() => (<></>)}
         >
-            <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            {/* Создание комнаты */}
-            {!roomId ? (
-                <div style={{ marginBottom: '30px' }}>
-                    <div style={{ marginBottom: '15px' }}>
-                        <input
-                            type="text"
-                            placeholder="Название комнаты"
-                            value={roomName}
-                            onChange={(e) => setRoomName(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                fontSize: '16px',
-                                marginBottom: '10px'
-                            }}
-                        />
-                        <button
-                            onClick={createRoom}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: '#007bff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '16px'
-                            }}
-                        >
-                            Создать комнату
-                        </button>
+            <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
+                {/* Создание комнаты */}
+                {!roomId ? (
+                    <div style={{marginBottom: '30px'}}>
+                        <div style={{marginBottom: '15px'}}>
+                            <input
+                                type="text"
+                                placeholder="Название комнаты"
+                                value={roomName}
+                                onChange={(e) => setRoomName(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    fontSize: '16px',
+                                    marginBottom: '10px'
+                                }}
+                            />
+                            <button
+                                onClick={createRoom}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '16px'
+                                }}
+                            >
+                                Создать комнату
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div style={{ marginBottom: '30px' }}>
-                    <div style={{
-                        backgroundColor: '#d4edda',
-                        padding: '15px',
-                        borderRadius: '8px',
-                        marginBottom: '20px'
-                    }}>
-                        <p><strong>ID комнаты:</strong> {roomId}</p>
-                        <p><strong>Статус:</strong> {status}</p>
+                ) : (
+                    <div style={{marginBottom: '30px'}}>
+                        <div style={{
+                            backgroundColor: '#d4edda',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            marginBottom: '20px'
+                        }}>
+                            <p><strong>ID комнаты:</strong> {roomId}</p>
+                            <p><strong>Статус:</strong> {status}</p>
 
-                        {!isSharing && (
-                            <div style={{ marginTop: '20px' }}>
-                                <button
-                                    onClick={getSources}
-                                    style={{
-                                        marginRight: '10px',
-                                        padding: '10px 15px',
-                                        backgroundColor: '#28a745',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Выбрать экран
-                                </button>
-
-                                {sources.length > 0 && (
+                            {!isSharing && (
+                                <div style={{marginTop: '20px'}}>
                                     <button
-                                        onClick={() => startRoomSharing()}
+                                        onClick={getSources}
                                         style={{
+                                            marginRight: '10px',
                                             padding: '10px 15px',
+                                            backgroundColor: '#28a745',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Выбрать экран
+                                    </button>
+                                </div>
+                            )}
+                            <button
+                                ref={startBtn}
+                                disabled={sources.length === 0 || isSharing}
+                                onClick={() => startRoomSharing()}
+                                style={{
+                                    padding: '10px 15px',
+                                    backgroundColor: '#17a2b8',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Начать трансляцию
+                            </button>
+                        </div>
+
+                        {/* Список источников */}
+                        {sources.length > 0 && !isSharing && (
+                            <div style={{marginBottom: '20px'}}>
+                                <h4>Выберите источник:</h4>
+                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                                    {sources.map((source) => (
+                                        <button
+                                            key={source.id}
+                                            onClick={() => startRoomSharing(source.id)}
+                                            style={{
+                                                padding: '10px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                backgroundColor: 'white'
+                                            }}
+                                        >
+                                            {source.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Управление трансляцией */}
+                        {isSharing && (
+                            <Flex gap={'small'} vertical>
+                                <h4>Трансляция активна</h4>
+                                <Flex gap={'small'}>
+                                    <button
+                                        ref={stopBtn}
+                                        onClick={stopSharing}
+                                        style={{
+                                            padding: '10px 20px',
+                                            backgroundColor: '#dc3545',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Остановить трансляцию
+                                    </button>
+                                    <button
+                                        onClick={shareLinkHandler}
+                                        style={{
+                                            padding: '10px 20px',
                                             backgroundColor: '#17a2b8',
                                             color: 'white',
                                             border: 'none',
@@ -450,125 +533,65 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        Начать трансляцию
+                                        Поделиться в чате
                                     </button>
-                                )}
-                            </div>
+                                </Flex>
+
+                                {/* Превью экрана */}
+                                <div style={{marginTop: '20px'}}>
+                                    <h5>Превью:</h5>
+                                    <video
+                                        ref={localVideoRef}
+                                        autoPlay
+                                        muted
+                                        style={{
+                                            width: '100%',
+                                            maxWidth: '600px',
+                                            border: '2px solid #007bff',
+                                            borderRadius: '5px'
+                                        }}
+                                    />
+                                </div>
+                            </Flex>
                         )}
                     </div>
+                )}
 
-                    {/* Список источников */}
-                    {sources.length > 0 && !isSharing && (
-                        <div style={{ marginBottom: '20px' }}>
-                            <h4>Выберите источник:</h4>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                {sources.map((source) => (
-                                    <button
-                                        key={source.id}
-                                        onClick={() => startRoomSharing(source.id)}
-                                        style={{
-                                            padding: '10px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            backgroundColor: 'white'
-                                        }}
-                                    >
-                                        {source.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Управление трансляцией */}
-                    {isSharing && (
-                        <Flex gap={'small'} vertical>
-                            <h4>Трансляция активна</h4>
-                            <Flex gap={'small'}>
-                                <button
-                                    onClick={stopSharing}
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: '#dc3545',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Остановить трансляцию
-                                </button>
-                                <button
-                                    onClick={shareLinkHandler}
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: '#17a2b8',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Поделиться в чате
-                                </button>
-                            </Flex>
-
-                            {/* Превью экрана */}
-                            <div style={{ marginTop: '20px' }}>
-                                <h5>Превью:</h5>
-                                <video
-                                    ref={localVideoRef}
-                                    autoPlay
-                                    muted
-                                    style={{
-                                        width: '100%',
-                                        maxWidth: '600px',
-                                        border: '2px solid #007bff',
-                                        borderRadius: '5px'
-                                    }}
-                                />
-                            </div>
-                        </Flex>
-                    )}
-                </div>
-            )}
-
-            {/* Отображение ошибок */}
-            {error && (
-                <div style={{
-                    backgroundColor: '#f8d7da',
-                    color: '#721c24',
-                    padding: '10px',
-                    borderRadius: '4px',
-                    marginTop: '20px'
-                }}>
-                    {error}
-                </div>
-            )}
-
-            {roomId &&
-                <div style={{
-                    marginTop: '30px',
-                    padding: '15px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '8px',
-                    fontSize: '14px'
-                }}>
-                    <p>Ссылка для подключения:</p>
-                    <code style={{
-                        display: 'block',
+                {/* Отображение ошибок */}
+                {error && (
+                    <div style={{
+                        backgroundColor: '#f8d7da',
+                        color: '#721c24',
                         padding: '10px',
-                        backgroundColor: '#e9ecef',
                         borderRadius: '4px',
-                        marginBottom: '10px',
-                        wordBreak: 'break-all'
+                        marginTop: '20px'
                     }}>
-                        {window.location.origin}/receiver?room={roomId}
-                    </code>
-                </div>
-            }
-        </div>
+                        {error}
+                    </div>
+                )}
+
+                {roomId &&
+                    <div style={{
+                        marginTop: '30px',
+                        padding: '15px',
+                        backgroundColor: '#f8f9fa',
+                        borderRadius: '8px',
+                        fontSize: '14px'
+                    }}>
+                        <p>Ссылка для подключения:</p>
+                        <code style={{
+                            display: 'block',
+                            padding: '10px',
+                            backgroundColor: '#e9ecef',
+                            borderRadius: '4px',
+                            marginBottom: '10px',
+                            wordBreak: 'break-all'
+                        }}>
+                            {window.location.origin}/receiver?room={roomId}
+                        </code>
+                    </div>
+                }
+            </div>
         </Modal>
     );
 };
