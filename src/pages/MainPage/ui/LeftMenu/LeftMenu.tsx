@@ -19,8 +19,8 @@ export const LeftMenu = () => {
     // -----
 
     return (
-        <Flex 
-            style={{minWidth: '30vw', background: '#fff'}}
+        <Flex
+            style={{width: '30vw', background: '#fff'}}
             vertical>
             <TopMenu/>
             <Divider style={{margin: 0}}/>

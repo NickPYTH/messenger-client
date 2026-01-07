@@ -235,7 +235,7 @@ export const Message = (props: PropsType) => {
                     style={{
                         display: 'flex',
                         alignSelf: props.fromYou ? 'end' : 'start',
-                        maxWidth: 600,
+                        maxWidth: "65vw",
                         margin: '0 10px 12px 0',
                         cursor: 'context-menu',
                         position: 'relative',
@@ -243,7 +243,7 @@ export const Message = (props: PropsType) => {
                     onContextMenu={handleContextMenu}
                 >
                     <Flex vertical gap={'small'}>
-                        {/* Кнопка меню (опционально, для мобильных устройств) */}
+                        {/* Кнопка меню */}
                         <div style={{
                             position: 'absolute',
                             top: 0,
@@ -268,7 +268,7 @@ export const Message = (props: PropsType) => {
                             style={{
                                 padding: '8px 8px',
                                 borderRadius: '10px',
-                                maxWidth: 550,
+                                maxWidth: '60vw',
                                 wordBreak: 'break-word',
                             }}
                         >
@@ -282,7 +282,7 @@ export const Message = (props: PropsType) => {
                             paddingLeft: '4px',
                             justifyContent: props.fromYou ? 'flex-end' : 'flex-start'
                         }}>
-                            {props.data.sent_at}
+                            {props.data.is_edited && "Изменено"} {props.data.sent_at}
                         </Flex>
 
                         {/* Вложения */}

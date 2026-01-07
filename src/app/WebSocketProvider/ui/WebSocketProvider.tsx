@@ -62,9 +62,9 @@ const WebSocketProvider: React.FC<{
 
                 // Переподключение
                 if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-                    //reconnectAttemptsRef.current++;
-                    //console.log(`Переподключение через ${reconnectInterval/1000}сек (попытка; ${reconnectAttemptsRef.current})`);
-                    //setTimeout(connect, reconnectInterval);
+                    reconnectAttemptsRef.current++;
+                    console.log(`Переподключение через ${reconnectInterval/1000}сек (попытка; ${reconnectAttemptsRef.current})`);
+                    setTimeout(connect, reconnectInterval);
                 }
             };
 

@@ -28,7 +28,7 @@ const MainPage = () => {
             {selectedConversationId ?
                 <ChatWindow />
                 :
-                <Flex justify={'center'} align={'center'} style={{width: '100%'}}>
+                <Flex justify={'center'} align={'center'} style={{minWidth: '70vw'}}>
                     Выберите, кому хотели бы написать
                 </Flex>
             }

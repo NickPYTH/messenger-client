@@ -23,6 +23,14 @@ export const messageAPI = createApi({
             }),
             invalidatesTags: ['message']
         }),
+        update: build.mutation<MessageModel, MessageModel>({
+            query: (body) => ({
+                url: `/messages/${body.id}/`,
+                method: 'PATCH',
+                body: {text: body.text}
+            }),
+            invalidatesTags: ['message']
+        }),
         createWithFiles: build.mutation<MessageModel, CreateMessageWithFilesRequest>({
             query: (data) => {
                 // Создаем FormData для отправки файлов

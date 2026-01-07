@@ -1,34 +1,26 @@
-import {Avatar, Badge, Button, Divider, Empty, Flex, message as antdMessage, Popconfirm, Typography} from "antd"
+import {Badge, Button, Empty, Flex, message as antdMessage, Typography} from "antd"
 import {RootStateType} from "../../../../store/store";
 import {Message} from "./Message";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {conversationsAPI} from "../../../../service/ConversationsService";
 import {messageAPI} from "../../../../service/MessageService";
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {MessageModel} from "../../../../entities/MessageModel";
 import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
-import {
-    DeleteOutlined,
-    DesktopOutlined,
-    EyeOutlined,
-    FileAddOutlined,
-    PaperClipOutlined,
-    SendOutlined
-} from "@ant-design/icons";
-import {setSelectedConversation} from "../../../../store/slice/GeneralSlice";
+import {DeleteOutlined, EyeOutlined, FileAddOutlined, PaperClipOutlined, SendOutlined} from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import {AttachmentModal} from "./AttachmentModal";
 import {FileAttachment} from "../../../../entities/AttachmentModel";
-import { ScreenShareModal } from "../../../../ScreenShareModal";
+import {ScreenShareModal} from "../../../../ScreenShareModal";
+import {TopMenu} from "./TopMenu/TopMenu";
 
 const {Text} = Typography;
 
 export const ChatWindow = () => {
     // Store
-    const dispatch = useDispatch();
     const selectedConversation = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
-    const { registerHandler } = useWebSocket();
+    const {registerHandler} = useWebSocket();
     // -----
 
     // Refs
@@ -54,9 +46,7 @@ export const ChatWindow = () => {
     const [getConversationMessages, {
         data: messagesFromRequest,
     }] = conversationsAPI.useGetMessagesMutation();
-    const [deleteConversation, {
-        isSuccess: isDeleteConversationSuccess,
-    }] = conversationsAPI.useDeleteMutation();
+
     // -----
 
     // Computed
@@ -82,7 +72,7 @@ export const ChatWindow = () => {
     }, [isCreateMessageSuccess]);
 
     useEffect(() => {
-        // Регистрируем обработчик для сообщений чата
+        // Регистрируем обработчик для новых сообщений чата
         const addMessageHandler = registerHandler('message_created', (data) => {
             setMessages(prev => {
                 // Проверяем, нет ли уже такого сообщения
@@ -96,20 +86,28 @@ export const ChatWindow = () => {
     }, [registerHandler]);
 
     useEffect(() => {
+        // Регистрируем обработчик для измененных сообщений чата
+        const updateMessageHandler = registerHandler('message_updated', (data) => {
+            setMessages(prev => {
+                let message = data.entity as MessageModel;
+                return prev.map((msg:MessageModel) => msg.id === message.id ? message : msg);
+            });
+            setTimeout(() => handleScrollToBottom(), 100);
+        });
+        // Удаляем обработчик при размонтировании компонента
+        return updateMessageHandler;
+    }, [registerHandler]);
+
+    useEffect(() => {
         // Регистрируем обработчик для сообщений чата
         const deleteMessageHandler = registerHandler('message_deleted', (data) => {
             setMessages(prev => {
-                return prev.filter((msg:MessageModel) => msg.id != data.entity?.id);
+                return prev.filter((msg: MessageModel) => msg.id != data.entity?.id);
             });
             setTimeout(() => handleScrollToBottom(), 100);
         });
         return deleteMessageHandler;
     }, [registerHandler]);
-
-    useEffect(() => {
-        if (isDeleteConversationSuccess)
-            dispatch(setSelectedConversation(null));
-    }, [isDeleteConversationSuccess]);
     // -----
 
     // Handlers
@@ -180,11 +178,6 @@ export const ChatWindow = () => {
         }
     };
 
-    const deleteConversationHandler = () => {
-        if (selectedConversation)
-            deleteConversation(selectedConversation.id);
-    };
-
     const handleFilesSelected = (files: FileAttachment[]) => {
         setAttachments(files);
     };
@@ -213,7 +206,7 @@ export const ChatWindow = () => {
         }
     };
 
-    const sendInviteLinkHandler = async (text:string) => {
+    const sendInviteLinkHandler = async (text: string) => {
         if (selectedConversation) {
             let message: MessageModel = {
                 conversation: selectedConversation.id,
@@ -229,9 +222,9 @@ export const ChatWindow = () => {
             display: 'grid',
             gridTemplateRows: 'auto 1fr auto',
             height: '100vh',
-            padding: 5,
-            width: '90%',
-            overflow: 'hidden'
+            padding: '1vw',
+            overflow: 'hidden',
+            width: '68vw',
         }}>
             {visibleScreenShareModal &&
                 <ScreenShareModal
@@ -249,32 +242,13 @@ export const ChatWindow = () => {
                 />
             )}
 
-            <div style={{ width: '100%', height: 49, marginBottom: 2 }}>
-                <Flex gap={'small'} justify={'space-between'} align={'center'} style={{ height: '100%' }}>
-                    <Flex gap={'small'} align={'center'}>
-                        <Avatar style={{height: 50, minWidth: 50}} src="https://storage.ws.pho.to/s2/6b3b4c3d6708259901c7ab83f3bcaa8306d63a31_m.jpeg"  size={"large"}/>
-                        <Text strong>{selectedConversation?.title}</Text>
-                    </Flex>
-                    <Flex gap={'small'} align={'center'} justify={'end'} style={{ height: '100%' }}>
-                        <Button type='primary' icon={<DesktopOutlined />} onClick={() => setVisibleScreenShareModal(true)}/>
-                        <Popconfirm
-                            title={"Вы точно хотите удалить переписку?"}
-                            okText={"Да"}
-                            cancelText={"Отменить"}
-                            onConfirm={deleteConversationHandler}
-                        >
-                            <Button type='primary' danger icon={<DeleteOutlined />}/>
-                        </Popconfirm>
-                    </Flex>
-                </Flex>
-                <Divider style={{ width: '100%', margin: 0 }} />
-            </div>
+            <TopMenu setVisibleScreenShareModal={setVisibleScreenShareModal}/>
 
             <Flex
                 vertical
                 style={{
                     overflowY: 'auto',
-                    padding: '10px 0'
+                    padding: '0px 0'
                 }}
             >
                 {messages.map((message, index) => (
@@ -284,8 +258,8 @@ export const ChatWindow = () => {
                         fromYou={message.sender?.id == currentUser?.id}
                     />
                 ))}
-                {messages.length == 0 && <Empty style={{ marginTop: 50 }} description={"Сообщений пока нет..."} />}
-                <div ref={bottomRef} style={{ height: '0px' }} />
+                {messages.length == 0 && <Empty style={{marginTop: 50}} description={"Сообщений пока нет..."}/>}
+                <div ref={bottomRef} style={{height: '0px'}}/>
             </Flex>
 
             <Flex
@@ -307,7 +281,7 @@ export const ChatWindow = () => {
                             border: '1px solid #d9d9d9'
                         }}
                     >
-                        <div style={{ fontSize: '12px', color: '#666' }}>
+                        <div style={{fontSize: '12px', color: '#666'}}>
                             Прикрепленные файлы ({attachments.length}):
                         </div>
                         <Flex vertical gap="4px">
@@ -324,7 +298,7 @@ export const ChatWindow = () => {
                                     }}
                                 >
                                     <Flex align="center" gap="small">
-                                        <PaperClipOutlined style={{ color: '#1890ff' }} />
+                                        <PaperClipOutlined style={{color: '#1890ff'}}/>
                                         <span style={{
                                             fontSize: '12px',
                                             maxWidth: '200px',
@@ -334,7 +308,7 @@ export const ChatWindow = () => {
                                         }}>
                                             {file.name}
                                         </span>
-                                        <span style={{ fontSize: '11px', color: '#999' }}>
+                                        <span style={{fontSize: '11px', color: '#999'}}>
                                             {formatFileSize(file.size)}
                                         </span>
                                     </Flex>
@@ -342,7 +316,7 @@ export const ChatWindow = () => {
                                         <Button
                                             type="text"
                                             size="small"
-                                            icon={<EyeOutlined />}
+                                            icon={<EyeOutlined/>}
                                             onClick={() => handlePreviewAttachment(file)}
                                             title="Предпросмотр"
                                         />
@@ -350,7 +324,7 @@ export const ChatWindow = () => {
                                             type="text"
                                             size="small"
                                             danger
-                                            icon={<DeleteOutlined />}
+                                            icon={<DeleteOutlined/>}
                                             onClick={() => handleRemoveAttachment(file.uid)}
                                             title="Удалить"
                                         />
@@ -367,27 +341,27 @@ export const ChatWindow = () => {
                         value={text}
                         onChange={changeTextHandler}
                         onPressEnter={handleKeyPress}
-                        style={{ maxWidth: 600, width: '100%' }}
+                        style={{maxWidth: 600, width: '100%'}}
                         placeholder="Введите сообщение..."
                         allowClear
-                        autoSize={{ minRows: 1, maxRows: 4 }}
+                        autoSize={{minRows: 1, maxRows: 4}}
                         disabled={isLoading}
                     />
                     <Badge count={attachments.length}>
                         <Button
-                            style={{ height: 50, width: 50 }}
+                            style={{height: 50, width: 50}}
                             onClick={() => setVisibleAttachmentModal(true)}
                             disabled={isLoading}
-                            icon={<FileAddOutlined />}
+                            icon={<FileAddOutlined/>}
                         />
                     </Badge>
                     <Button
-                        style={{ height: 50, width: 50 }}
+                        style={{height: 50, width: 50}}
                         type={'primary'}
                         onClick={createMessageHandler}
                         loading={isLoading}
                         disabled={(!text || text.trim() === '') && attachments.length === 0}
-                        icon={<SendOutlined />}
+                        icon={<SendOutlined/>}
                     />
                 </Flex>
             </Flex>
