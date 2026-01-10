@@ -1,10 +1,9 @@
-import { Button, Empty, Flex, Spin } from 'antd';
+import { Empty, Flex, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ContactItem } from './ContactItem';
 import { userAPI } from '../../../../../service/UserService';
 import { UserModel } from '../../../../../entities/UserModel';
 import Search from 'antd/es/input/Search';
-import { CreateGroupModal } from './CreateGroupModal';
 
 export const ContactsList = () => {
     // States

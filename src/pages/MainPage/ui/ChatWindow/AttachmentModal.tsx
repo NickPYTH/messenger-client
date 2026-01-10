@@ -1,25 +1,7 @@
 // components/FileUploadModal.jsx
 import React, { useState, useEffect } from 'react';
-import {
-    Modal,
-    Upload,
-    Button,
-    List,
-    Progress,
-    Image,
-    message,
-    Space,
-    Typography,
-    Tag,
-} from 'antd';
-import {
-    UploadOutlined,
-    PaperClipOutlined,
-    EyeOutlined,
-    DeleteOutlined,
-    CloseOutlined,
-    CheckOutlined,
-} from '@ant-design/icons';
+import { Modal, Upload, Button, List, Image, message, Space, Typography, Tag } from 'antd';
+import { UploadOutlined, EyeOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 const { Dragger } = Upload;

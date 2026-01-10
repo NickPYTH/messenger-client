@@ -40,8 +40,8 @@ export const CreateGroupModal = (props: ModalProps) => {
     // Handlers
     const createConversationHandler = () => {
         if (title.trim().length > 0 && selectedUserFIOList.length > 1) {
-            let member_ids: number[] = selectedUserFIOList.map((fio: string) => {
-                let user: UserModel | undefined = users?.find(
+            const member_ids: number[] = selectedUserFIOList.map((fio: string) => {
+                const user: UserModel | undefined = users?.find(
                     (user: UserModel) =>
                         fio ==
                         `${user.profile.last_name} ${user.profile.first_name} ${user.profile.second_name}`

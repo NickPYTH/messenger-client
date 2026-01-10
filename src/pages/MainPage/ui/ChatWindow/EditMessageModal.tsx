@@ -1,4 +1,4 @@
-import { message as antdMessage, Modal } from 'antd';
+import { Modal } from 'antd';
 import { messageAPI } from '../../../../service/MessageService';
 import { MessageModel } from '../../../../entities/MessageModel';
 import TextArea from 'antd/es/input/TextArea';

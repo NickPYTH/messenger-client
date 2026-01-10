@@ -93,7 +93,7 @@ export const ChatWindow = () => {
         // Регистрируем обработчик для измененных сообщений чата
         const updateMessageHandler = registerHandler('message_updated', (data) => {
             setMessages((prev) => {
-                let message = data.entity as MessageModel;
+                const message = data.entity as MessageModel;
                 return prev.map((msg: MessageModel) => (msg.id === message.id ? message : msg));
             });
             setTimeout(() => handleScrollToBottom(), 100);
@@ -147,7 +147,7 @@ export const ChatWindow = () => {
                 antdMessage.success('Сообщение с файлами отправлено');
             } else {
                 // Отправляем только текстовое сообщение
-                let message: MessageModel = {
+                const message: MessageModel = {
                     conversation: selectedConversation.id,
                     text: text.trim(),
                 };
@@ -211,7 +211,7 @@ export const ChatWindow = () => {
 
     const sendInviteLinkHandler = async (text: string) => {
         if (selectedConversation) {
-            let message: MessageModel = {
+            const message: MessageModel = {
                 conversation: selectedConversation.id,
                 text,
             };

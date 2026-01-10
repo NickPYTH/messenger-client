@@ -1,4 +1,4 @@
-import { Flex, Divider, Avatar, Typography, Button, Popover } from 'antd';
+import { Flex, Avatar, Typography, Button, Popover } from 'antd';
 import { MessageOutlined, HeartOutlined } from '@ant-design/icons';
 import { UserModel } from '../../../../../entities/UserModel';
 import { conversationsAPI } from '../../../../../service/ConversationsService';
@@ -42,7 +42,7 @@ export const ContactItem = (props: PropsType) => {
     }, [createdConversation]);
     useEffect(() => {
         if (errorCreateConversation) {
-            let error: ErrorCreateConversationType =
+            const error: ErrorCreateConversationType =
                 errorCreateConversation as unknown as ErrorCreateConversationType;
             //dispatch(setSelectedConversation(parseInt(error.data.existing_conversation_id[0])));
         }
@@ -51,7 +51,7 @@ export const ContactItem = (props: PropsType) => {
 
     // Handlers
     const createConversationHandler = () => {
-        let member_ids = [props.contact.id];
+        const member_ids = [props.contact.id];
         createConversation({ member_ids });
     };
     // -----
