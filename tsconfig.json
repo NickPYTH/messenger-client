@@ -2,7 +2,24 @@
     "compilerOptions": {
         "target": "es5",
         "lib": ["dom", "dom.iterable", "esnext"],
-        // Для абсолютного импорта
+        "baseUrl": "src", // Корень проекта
+        "paths": {
+            // Алиасы для папок
+            "@/*": ["src/*"],
+            "@component/*": ["src/component/*"],
+            "@pages/*": ["src/pages/*"],
+            "@utils/*": ["src/utils/*"],
+            "@hooks/*": ["src/hooks/*"],
+            "@store/*": ["src/store/*"],
+            "@types/*": ["src/types/*"],
+            "@assets/*": ["src/assets/*"],
+            "@api/*": ["src/api/*"],
+            "@context/*": ["src/context/*"],
+            "@app/*": ["src/app/*"],
+            "@entities/*": ["src/entities/*"],
+            "@service/*": ["src/service/*"],
+            "@shared/*": ["src/shared/*"],
+        },
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,

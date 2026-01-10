@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { NotificationInstance } from 'antd/es/notification/interface';
-import { UserModel } from '../../entities/UserModel';
-import { ConversationModel } from '../../entities/ConversationModel';
+import { ConversationModel } from 'entities/ConversationModel';
+import { UserModel } from 'entities/UserModel';
 
 export type CurrentUserModelStateType = {
     user: UserModel | null;

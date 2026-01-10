@@ -1,19 +1,14 @@
 import { Avatar, Button, Divider, Dropdown, Flex, MenuProps, Typography } from 'antd';
 import React, { useState } from 'react';
 import { DeleteOutlined, DesktopOutlined, MoreOutlined, SettingOutlined } from '@ant-design/icons';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootStateType } from '../../../../../store/store';
+import { useSelector } from 'react-redux';
 import { ConfirmChatDeleteModal } from './ConfirmChatDeleteModal';
+import { RootStateType } from 'store/store';
 
 const { Text } = Typography;
 
-type PropsType = {
-    setVisibleScreenShareModal: Function;
-};
-
-export const TopMenu = (props: PropsType) => {
+export const TopMenu = () => {
     // Store
-    const dispatch = useDispatch();
     const selectedConversation = useSelector(
         (state: RootStateType) => state.currentUser.selectedConversation
     );
@@ -32,7 +27,7 @@ export const TopMenu = (props: PropsType) => {
     // -----
 
     // Handlers
-    const menuItemsClickHandler = (e: any) => {
+    const menuItemsClickHandler = (e: { key: string }) => {
         if (e.key == 'deleteConversation') {
             setVisibleConfirmChatDeleteModal(true);
         }

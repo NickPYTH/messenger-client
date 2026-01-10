@@ -1,11 +1,11 @@
 import { Flex, Avatar, Typography, Button, Popover } from 'antd';
 import { MessageOutlined, HeartOutlined } from '@ant-design/icons';
-import { UserModel } from '../../../../../entities/UserModel';
-import { conversationsAPI } from '../../../../../service/ConversationsService';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedConversation } from '../../../../../store/slice/GeneralSlice';
-import { RootStateType } from '../../../../../store/store';
+import { UserModel } from 'entities/UserModel';
+import { RootStateType } from 'store/store';
+import { conversationsAPI } from 'service/ConversationsService';
+import { setSelectedConversation } from 'store/slice/GeneralSlice';
 
 const { Text } = Typography;
 
@@ -24,9 +24,6 @@ export const ContactItem = (props: PropsType) => {
     // Store
     const dispatch = useDispatch();
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
-    const selectedConversationId = useSelector(
-        (state: RootStateType) => state.currentUser.selectedConversation
-    );
     // -----
 
     // Web requests

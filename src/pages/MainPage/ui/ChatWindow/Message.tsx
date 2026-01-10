@@ -1,16 +1,7 @@
 import { MessageModel } from '../../../../entities/MessageModel';
 import { AttachmentModel } from '../../../../entities/AttachmentModel';
 import { isLikelyCode } from '../../../../shared/config/utils.py';
-import {
-    Button,
-    Dropdown,
-    Flex,
-    MenuProps,
-    message as antdMessage,
-    Modal,
-    Typography,
-    Upload,
-} from 'antd';
+import { Button, Dropdown, Flex, MenuProps, Modal, Typography, Upload } from 'antd';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import React, { useRef, useState } from 'react';
@@ -77,7 +68,6 @@ export const Message = (props: PropsType) => {
     const handleCopyText = () => {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(props.data.text).then(() => {
-                antdMessage.success('Текст скопирован');
                 props.onCopy?.(props.data.text);
             });
         }
@@ -99,7 +89,6 @@ export const Message = (props: PropsType) => {
                 navigator.clipboard
                     .writeText(allCode)
                     .then(() => {
-                        antdMessage.success('Код скопирован');
                         props.onCopy?.(allCode);
                     })
                     .catch(() => {
@@ -140,7 +129,6 @@ export const Message = (props: PropsType) => {
                 link.click();
                 document.body.removeChild(link);
             });
-            antdMessage.success(`Скачано файлов: ${props.data.attachments.length}`);
         }
         setContextMenuVisible(false);
     };
@@ -219,7 +207,7 @@ export const Message = (props: PropsType) => {
                     {text.trim()}
                 </SyntaxHighlighter>
             );
-        } else if (/https?:\/\/[^\/]+\/receiver\?room=/.test(text))
+        } else if (/https?:\/\/[^/]+\/receiver\?room=/.test(text))
             return (
                 <Flex vertical gap={'small'}>
                     <Text>Моя транляция</Text>

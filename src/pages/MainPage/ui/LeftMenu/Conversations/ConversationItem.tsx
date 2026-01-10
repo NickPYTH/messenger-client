@@ -1,11 +1,11 @@
 import { Avatar, Flex, Typography } from 'antd';
-import { ConversationModel } from '../../../../../entities/ConversationModel';
 import { useDispatch, useSelector } from 'react-redux';
-import { setSelectedConversation } from '../../../../../store/slice/GeneralSlice';
 import { useEffect, useState } from 'react';
-import { RootStateType } from '../../../../../store/store';
-import { useWebSocket } from '../../../../../app/WebSocketProvider/ui/WebSocketProvider';
-import { MessageModel } from '../../../../../entities/MessageModel';
+import { ConversationModel } from 'entities/ConversationModel';
+import { RootStateType } from 'store/store';
+import { MessageModel } from 'entities/MessageModel';
+import { useWebSocket } from 'app/WebSocketProvider/ui/WebSocketProvider';
+import { setSelectedConversation } from 'store/slice/GeneralSlice';
 
 const { Text } = Typography;
 

@@ -1,7 +1,7 @@
-import { host } from '../shared/config/constants';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { ConversationModel } from '../entities/ConversationModel';
-import { MessageModel } from '../entities/MessageModel';
+import { ConversationModel } from 'entities/ConversationModel';
+import { MessageModel } from 'entities/MessageModel';
+import { host } from 'shared/config/constants';
 
 export const conversationsAPI = createApi({
     reducerPath: 'conversationsAPI',

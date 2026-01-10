@@ -1,6 +1,7 @@
-// signaling-server.js
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import { Server, OPEN } from 'ws';
+
+const wss = new Server({ port: 8080 });
 const pendingOffers = new Map(); // roomId -> offer data
 
 // Хранилище комнат и клиентов
@@ -53,7 +54,7 @@ function handleRequestOffer(ws, data) {
         console.log(`ℹ️ Нет сохраненного оффера для комнаты ${roomId}`);
 
         // Запрашиваем оффер у отправителя
-        if (room.sender && room.sender.readyState === WebSocket.OPEN) {
+        if (room.sender && room.sender.readyState === OPEN) {
             room.sender.send(
                 JSON.stringify({
                     type: 'offer-requested',
@@ -222,7 +223,7 @@ function handleJoinRoom(ws, data) {
     console.log(`   Клиентов в комнате: ${room.clients.size}`);
 
     // Уведомляем отправителя о новом зрителе
-    if (room.sender && room.sender.readyState === WebSocket.OPEN) {
+    if (room.sender && room.sender.readyState === OPEN) {
         room.sender.send(
             JSON.stringify({
                 type: 'viewer-joined',
@@ -250,7 +251,7 @@ function handleJoinRoom(ws, data) {
 
         // Даем клиенту время обработать room-joined
         setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN) {
+            if (ws.readyState === OPEN) {
                 ws.send(
                     JSON.stringify({
                         type: 'offer',
@@ -311,7 +312,7 @@ function handleLeaveRoom(ws) {
 
         // Уведомляем всех зрителей
         room.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
+            if (client.readyState === OPEN) {
                 client.send(
                     JSON.stringify({
                         type: 'broadcast-ended',
@@ -357,7 +358,7 @@ function handleBroadcastPaused(ws, data) {
 
     // Уведомляем всех зрителей
     room.clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
+        if (client !== ws && client.readyState === OPEN) {
             client.send(
                 JSON.stringify({
                     type: 'broadcast-paused',
@@ -383,7 +384,7 @@ function handleBroadcastResumed(ws, data) {
 
     // Уведомляем всех зрителей
     room.clients.forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
+        if (client !== ws && client.readyState === OPEN) {
             client.send(
                 JSON.stringify({
                     type: 'broadcast-resumed',
@@ -432,10 +433,10 @@ function forwardToRoom(senderWs, data) {
             receiverClients.push({
                 client: client,
                 type: clients.get(client)?.type || 'unknown',
-                ready: client.readyState === WebSocket.OPEN,
+                ready: client.readyState === OPEN,
             });
 
-            if (client.readyState === WebSocket.OPEN) {
+            if (client.readyState === OPEN) {
                 client.send(JSON.stringify(data));
                 sentCount++;
             }
@@ -460,7 +461,7 @@ function broadcastRoomList() {
 
     // Рассылаем обновленный список всем подключенным клиентам
     wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === OPEN) {
             const clientInfo = clients.get(client);
             // Отправляем только если клиент не в активной комнате
             if (!clientInfo || clientInfo.type === 'receiver') {

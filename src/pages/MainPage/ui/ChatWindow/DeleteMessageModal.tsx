@@ -1,10 +1,10 @@
 import { Modal } from 'antd';
-import { messageAPI } from '../../../../service/MessageService';
-import { MessageModel } from '../../../../entities/MessageModel';
+import { MessageModel } from 'entities/MessageModel';
+import { messageAPI } from 'service/MessageService';
 
 type PropsType = {
     data: MessageModel;
-    setVisible: Function;
+    setVisible: (visible: boolean) => void;
     visible: boolean;
 };
 
@@ -14,7 +14,7 @@ export const DeleteMessageModal = (props: PropsType) => {
     // -----
 
     // Web requests
-    const [deleteMessage, { isSuccess: isSuccessDeleteMessage }] = messageAPI.useDeleteMutation();
+    const [deleteMessage] = messageAPI.useDeleteMutation();
     // -----
 
     // Handlers

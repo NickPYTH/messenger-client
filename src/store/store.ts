@@ -1,7 +1,7 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { conversationsAPI } from 'service/ConversationsService';
+import { userAPI } from 'service/UserService';
 import generalSlice, { CurrentUserModelStateType } from './slice/GeneralSlice';
-import { userAPI } from '../service/UserService';
-import { conversationsAPI } from '../service/ConversationsService';
 import { messageAPI } from '../service/MessageService';
 
 export type RootStateType = {

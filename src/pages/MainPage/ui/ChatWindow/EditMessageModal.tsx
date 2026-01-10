@@ -1,12 +1,12 @@
 import { Modal } from 'antd';
-import { messageAPI } from '../../../../service/MessageService';
-import { MessageModel } from '../../../../entities/MessageModel';
 import TextArea from 'antd/es/input/TextArea';
 import { useEffect, useState } from 'react';
+import { messageAPI } from 'service/MessageService';
+import { MessageModel } from '../../../../entities/MessageModel';
 
 type PropsType = {
     data: MessageModel;
-    setVisible: Function;
+    setVisible: (visible: boolean) => void;
     visible: boolean;
 };
 

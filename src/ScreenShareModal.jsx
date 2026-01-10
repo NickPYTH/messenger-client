@@ -19,6 +19,7 @@ const WEBRTC_CONFIG = {
     rtcpMuxPolicy: 'require',
 };
 
+// eslint-disable-next-line react/prop-types
 export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler }) => {
     const wsRef = useRef(null);
     const [ws, setWs] = useState(null);

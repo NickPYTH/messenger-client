@@ -1,6 +1,6 @@
-import { host } from '../shared/config/constants';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { MessageModel } from '../entities/MessageModel';
+import { MessageModel } from 'entities/MessageModel';
+import { host } from 'shared/config/constants';
 
 export interface CreateMessageWithFilesRequest {
     conversation: number;

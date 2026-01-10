@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Flex, Input, Modal, Select, Typography } from 'antd';
-import { useSelector } from 'react-redux';
-import { RootStateType } from '../../../../../store/store';
-import { userAPI } from '../../../../../service/UserService';
-import { UserModel } from '../../../../../entities/UserModel';
-import { conversationsAPI } from '../../../../../service/ConversationsService';
+import { userAPI } from 'service/UserService';
+import { conversationsAPI } from 'service/ConversationsService';
+import { UserModel } from 'entities/UserModel';
 
 const { Text } = Typography;
 
 type ModalProps = {
     visible: boolean;
-    setVisible: Function;
+    setVisible: (visible: boolean) => void;
 };
 
 export const CreateGroupModal = (props: ModalProps) => {
     // Store
-    const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
+
     // -----
 
     // States

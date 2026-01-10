@@ -1,12 +1,7 @@
-import { Badge, Button, Empty, Flex, message as antdMessage, Typography } from 'antd';
-import { RootStateType } from '../../../../store/store';
+import { Badge, Button, Empty, Flex, message as antdMessage } from 'antd';
 import { Message } from './Message';
 import { useSelector } from 'react-redux';
-import { conversationsAPI } from '../../../../service/ConversationsService';
-import { messageAPI } from '../../../../service/MessageService';
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageModel } from '../../../../entities/MessageModel';
-import { useWebSocket } from '../../../../app/WebSocketProvider/ui/WebSocketProvider';
 import {
     DeleteOutlined,
     EyeOutlined,
@@ -16,11 +11,14 @@ import {
 } from '@ant-design/icons';
 import TextArea from 'antd/es/input/TextArea';
 import { AttachmentModal } from './AttachmentModal';
-import { FileAttachment } from '../../../../entities/AttachmentModel';
-import { ScreenShareModal } from '../../../../ScreenShareModal';
 import { TopMenu } from './TopMenu/TopMenu';
-
-const { Text } = Typography;
+import type { UploadFile } from 'antd/es/upload/interface';
+import { useWebSocket } from 'app/WebSocketProvider/ui/WebSocketProvider';
+import { RootStateType } from 'store/store';
+import { MessageModel } from 'entities/MessageModel';
+import { messageAPI } from 'service/MessageService';
+import { conversationsAPI } from 'service/ConversationsService';
+import { ScreenShareModal } from '../../../../ScreenShareModal';
 
 export const ChatWindow = () => {
     // Store
@@ -32,7 +30,7 @@ export const ChatWindow = () => {
     // -----
 
     // Refs
-    const bottomRef = useRef(null);
+    const bottomRef = useRef<HTMLDivElement>(null);
     // -----
 
     // States
@@ -40,7 +38,7 @@ export const ChatWindow = () => {
     const [messages, setMessages] = useState<MessageModel[]>([]);
     const [visibleAttachmentModal, setVisibleAttachmentModal] = useState(false);
     const [visibleScreenShareModal, setVisibleScreenShareModal] = useState(false);
-    const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+    const [attachments, setAttachments] = useState<UploadFile[]>([]);
     // -----
 
     // Web requests
@@ -115,7 +113,7 @@ export const ChatWindow = () => {
     // -----
 
     // Handlers
-    const changeTextHandler = (e: any) => {
+    const changeTextHandler = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setText(e.target.value);
     };
 
@@ -157,23 +155,13 @@ export const ChatWindow = () => {
             // Сбрасываем состояние
             setText('');
             setAttachments([]);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Ошибка отправки сообщения:', error);
-
-            // Показываем подробную ошибку
-            const errorMessage =
-                error.data?.detail ||
-                error.data?.files?.[0] ||
-                error.data?.text?.[0] ||
-                'Ошибка при отправке сообщения';
-
-            antdMessage.error(errorMessage);
         }
     };
 
     const handleScrollToBottom = () => {
         if (bottomRef.current) {
-            //@ts-ignore
             bottomRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'end',
@@ -181,7 +169,7 @@ export const ChatWindow = () => {
         }
     };
 
-    const handleFilesSelected = (files: FileAttachment[]) => {
+    const handleFilesSelected = (files: UploadFile[]) => {
         setAttachments(files);
     };
 
@@ -189,7 +177,7 @@ export const ChatWindow = () => {
         setAttachments((prev) => prev.filter((file) => file.uid !== uid));
     };
 
-    const handlePreviewAttachment = (file: FileAttachment) => {
+    const handlePreviewAttachment = (file: UploadFile) => {
         if (file.originFileObj) {
             const url = URL.createObjectURL(file.originFileObj);
             window.open(url, '_blank');
@@ -243,11 +231,11 @@ export const ChatWindow = () => {
                     visible={visibleAttachmentModal}
                     onCancel={() => setVisibleAttachmentModal(false)}
                     onFilesSelected={handleFilesSelected}
-                    existingFiles={attachments}
+                    existingFiles={attachments as UploadFile[]}
                 />
             )}
 
-            <TopMenu setVisibleScreenShareModal={setVisibleScreenShareModal} />
+            <TopMenu />
 
             <Flex
                 vertical
@@ -318,7 +306,7 @@ export const ChatWindow = () => {
                                             {file.name}
                                         </span>
                                         <span style={{ fontSize: '11px', color: '#999' }}>
-                                            {formatFileSize(file.size)}
+                                            {file.size && formatFileSize(file.size)}
                                         </span>
                                     </Flex>
                                     <Flex gap="4px">

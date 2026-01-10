@@ -1,6 +1,4 @@
-// context/WebSocketContext.tsx
 import React, { createContext, useContext, useEffect, useRef, useCallback, useState } from 'react';
-import ReduxProvider from '../../ReduxProvider/ui/ReduxProvider';
 
 interface WebSocketContextType {
     sendMessage: (data: any) => void;

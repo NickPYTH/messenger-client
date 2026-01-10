@@ -1,9 +1,9 @@
-import { Avatar, Flex, Modal } from 'antd';
+import { Modal } from 'antd';
 import React, { useEffect } from 'react';
-import { setSelectedConversation } from '../../../../../store/slice/GeneralSlice';
-import { conversationsAPI } from '../../../../../service/ConversationsService';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootStateType } from '../../../../../store/store';
+import { conversationsAPI } from 'service/ConversationsService';
+import { RootStateType } from 'store/store';
+import { setSelectedConversation } from 'store/slice/GeneralSlice';
 
 type PropsType = {
     visible: boolean;

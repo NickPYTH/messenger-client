@@ -1,9 +1,9 @@
 import { Empty, Flex, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ContactItem } from './ContactItem';
-import { userAPI } from '../../../../../service/UserService';
-import { UserModel } from '../../../../../entities/UserModel';
 import Search from 'antd/es/input/Search';
+import { UserModel } from 'entities/UserModel';
+import { userAPI } from 'service/UserService';
 
 export const ContactsList = () => {
     // States
@@ -59,7 +59,7 @@ export const ContactsList = () => {
                 <Spin style={{ marginTop: 50 }} />
             ) : (
                 usersFiltered.map((contact: UserModel) => {
-                    return <ContactItem contact={contact} />;
+                    return <ContactItem key={contact.id} contact={contact} />;
                 })
             )}
             {usersFiltered.length == 0 && (

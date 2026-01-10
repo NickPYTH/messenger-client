@@ -1,11 +1,11 @@
 import React from 'react';
 import { Avatar, Flex, Modal } from 'antd';
-import { RootStateType } from '../../../../store/store';
 import { useSelector } from 'react-redux';
+import { RootStateType } from 'store/store';
 
 type ModalProps = {
     visible: boolean;
-    setVisible: Function;
+    setVisible: (visible: boolean) => void;
 };
 
 export const ProfileModal = (props: ModalProps) => {
