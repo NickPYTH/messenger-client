@@ -1,5 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {Flex, Modal} from "antd";
+import React, { useState, useRef, useEffect } from 'react';
+import { Flex, Modal } from 'antd';
 
 const WEBRTC_CONFIG = {
     iceServers: [
@@ -7,19 +7,19 @@ const WEBRTC_CONFIG = {
             urls: [
                 'turn:83.222.9.213:3478?transport=udp',
                 'turn:83.222.9.213:3478?transport=tcp',
-                'turns:83.222.9.213:5349?transport=tcp'
+                'turns:83.222.9.213:5349?transport=tcp',
             ],
             username: 'testuser',
-            credential: 'testpassword'
-        }
+            credential: 'testpassword',
+        },
     ],
     iceTransportPolicy: 'relay',
     iceCandidatePoolSize: 0,
     bundlePolicy: 'max-bundle',
-    rtcpMuxPolicy: 'require'
+    rtcpMuxPolicy: 'require',
 };
 
-export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) => {
+export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler }) => {
     const wsRef = useRef(null);
     const [ws, setWs] = useState(null);
     const [localStream, setLocalStream] = useState(null);
@@ -43,7 +43,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
         // Создаем интервал
         const intervalId = setInterval(() => {
             console.log('Обновляю оффер!', startBtn.current);
-            if (startBtn && stopBtn){
+            if (startBtn && stopBtn) {
                 stopBtn.current.click();
                 setTimeout(() => startBtn.current.click(), 1000);
             }
@@ -78,7 +78,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                         break;
 
                     case 'viewer-joined':
-                        setViewers(prev => prev + 1);
+                        setViewers((prev) => prev + 1);
                         console.log(`Новый зритель: ${data.viewerId}`);
                         stopSharing();
                         newWatcher.current = data.viewerId;
@@ -89,7 +89,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                         if (peerConnectionRef.current) {
                             const answer = new RTCSessionDescription({
                                 type: 'answer',
-                                sdp: data.sdp
+                                sdp: data.sdp,
                             });
                             await peerConnectionRef.current.setRemoteDescription(answer);
                             console.log('✅ Ответ установлен');
@@ -131,7 +131,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
             video.muted = true;
 
             // Пытаемся запустить видео
-            video.play().catch(error => {
+            video.play().catch((error) => {
                 console.log('Автозапуск видео заблокирован:', error.message);
                 // Показываем кнопку для ручного запуска
                 setError('Нажмите на видео для запуска');
@@ -158,7 +158,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                 type: 'create-room',
                 roomName: roomName,
                 username: 'Ведущий', // Можно получать из профиля
-                from: 'sender'
+                from: 'sender',
             };
 
             wsRef.current.send(JSON.stringify(roomData));
@@ -202,9 +202,9 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                         chromeMediaSource: 'desktop',
                         chromeMediaSourceId: finalSourceId,
                         minFrameRate: 3,
-                        maxFrameRate: 5
-                    }
-                }
+                        maxFrameRate: 5,
+                    },
+                },
             };
 
             // Получаем поток
@@ -226,7 +226,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                 label: videoTrack.label,
                 enabled: videoTrack.enabled,
                 readyState: videoTrack.readyState,
-                settings: videoTrack.getSettings()
+                settings: videoTrack.getSettings(),
             });
 
             // Обновляем состояние
@@ -236,20 +236,20 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
 
             // Уведомляем о возобновлении трансляции
             if (wsRef.current?.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify({
-                    type: 'broadcast-resumed',
-                    from: 'sender',
-                    roomId: roomId,
-                    message: 'Трансляция возобновлена'
-                }));
+                wsRef.current.send(
+                    JSON.stringify({
+                        type: 'broadcast-resumed',
+                        from: 'sender',
+                        roomId: roomId,
+                        message: 'Трансляция возобновлена',
+                    })
+                );
             }
 
             // Даем React время обновить DOM
             setTimeout(() => {
                 createPeerConnection(stream);
             }, 100);
-
-
         } catch (error) {
             console.error('❌ Ошибка захвата:', error);
             setError(`Ошибка захвата: ${error.message}`);
@@ -296,7 +296,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
             peerConnectionRef.current = pc;
 
             // Добавляем локальный поток
-            stream.getTracks().forEach(track => {
+            stream.getTracks().forEach((track) => {
                 pc.addTrack(track, stream);
             });
 
@@ -306,11 +306,13 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                     console.log('ICE кандидат отправителя:', event.candidate);
                     // Отправляем через WebSocket
                     if (wsRef.current?.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(JSON.stringify({
-                            type: 'ice-candidate',
-                            candidate: event.candidate,
-                            from: 'sender'
-                        }));
+                        wsRef.current.send(
+                            JSON.stringify({
+                                type: 'ice-candidate',
+                                candidate: event.candidate,
+                                from: 'sender',
+                            })
+                        );
                     }
                 }
             };
@@ -326,7 +328,6 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
 
             // Создаем оффер ОДИН РАЗ
             createAndSendOffer(pc);
-
         } catch (error) {
             console.error('Ошибка создания PeerConnection:', error);
             setError(`Ошибка соединения: ${error.message}`);
@@ -337,19 +338,21 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
         try {
             const offer = await pc.createOffer({
                 offerToReceiveVideo: true,
-                offerToReceiveAudio: false
+                offerToReceiveAudio: false,
             });
 
             await pc.setLocalDescription(offer);
 
             if (wsRef.current?.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify({
-                    type: 'offer',
-                    sdp: offer.sdp,
-                    from: 'sender',
-                    roomId: roomId, // Добавляем roomId
-                    timestamp: Date.now()
-                }));
+                wsRef.current.send(
+                    JSON.stringify({
+                        type: 'offer',
+                        sdp: offer.sdp,
+                        from: 'sender',
+                        roomId: roomId, // Добавляем roomId
+                        timestamp: Date.now(),
+                    })
+                );
                 console.log('📤 Оффер отправлен в комнату', roomId);
             }
         } catch (error) {
@@ -365,19 +368,21 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
         }
 
         if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
+            localStream.getTracks().forEach((track) => track.stop());
             setLocalStream(null);
         }
 
         // НЕ отправляем leave-room при остановке трансляции
         // Вместо этого отправляем broadcast-paused
         if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
-                type: 'broadcast-paused',
-                from: 'sender',
-                roomId: roomId,
-                message: 'Трансляция приостановлена'
-            }));
+            wsRef.current.send(
+                JSON.stringify({
+                    type: 'broadcast-paused',
+                    from: 'sender',
+                    roomId: roomId,
+                    message: 'Трансляция приостановлена',
+                })
+            );
         }
 
         setIsSharing(false);
@@ -389,22 +394,23 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
         if (roomId) {
             sendInviteLinkHandler(`${window.location.origin}/receiver?room=${roomId}`);
         }
-    }
+    };
 
     return (
-        <Modal title={!roomId ? "Создание трансляции" : `Комната ${roomName}`}
-               maskClosable={false}
-               open={visible}
-               onCancel={() => setVisible(false)}
-               width={'90vw'}
-               loading={false}
-               footer={() => (<></>)}
+        <Modal
+            title={!roomId ? 'Создание трансляции' : `Комната ${roomName}`}
+            maskClosable={false}
+            open={visible}
+            onCancel={() => setVisible(false)}
+            width={'90vw'}
+            loading={false}
+            footer={() => <></>}
         >
-            <div style={{padding: '20px', maxWidth: '800px', margin: '0 auto'}}>
+            <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
                 {/* Создание комнаты */}
                 {!roomId ? (
-                    <div style={{marginBottom: '30px'}}>
-                        <div style={{marginBottom: '15px'}}>
+                    <div style={{ marginBottom: '30px' }}>
+                        <div style={{ marginBottom: '15px' }}>
                             <input
                                 type="text"
                                 placeholder="Название комнаты"
@@ -414,7 +420,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                     width: '100%',
                                     padding: '10px',
                                     fontSize: '16px',
-                                    marginBottom: '10px'
+                                    marginBottom: '10px',
                                 }}
                             />
                             <button
@@ -426,7 +432,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                     border: 'none',
                                     borderRadius: '4px',
                                     cursor: 'pointer',
-                                    fontSize: '16px'
+                                    fontSize: '16px',
                                 }}
                             >
                                 Создать комнату
@@ -434,18 +440,24 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                         </div>
                     </div>
                 ) : (
-                    <div style={{marginBottom: '30px'}}>
-                        <div style={{
-                            backgroundColor: '#d4edda',
-                            padding: '15px',
-                            borderRadius: '8px',
-                            marginBottom: '20px'
-                        }}>
-                            <p><strong>ID комнаты:</strong> {roomId}</p>
-                            <p><strong>Статус:</strong> {status}</p>
+                    <div style={{ marginBottom: '30px' }}>
+                        <div
+                            style={{
+                                backgroundColor: '#d4edda',
+                                padding: '15px',
+                                borderRadius: '8px',
+                                marginBottom: '20px',
+                            }}
+                        >
+                            <p>
+                                <strong>ID комнаты:</strong> {roomId}
+                            </p>
+                            <p>
+                                <strong>Статус:</strong> {status}
+                            </p>
 
                             {!isSharing && (
-                                <div style={{marginTop: '20px'}}>
+                                <div style={{ marginTop: '20px' }}>
                                     <button
                                         onClick={getSources}
                                         style={{
@@ -455,7 +467,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '4px',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
                                         }}
                                     >
                                         Выбрать экран
@@ -472,7 +484,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '4px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
                                 }}
                             >
                                 Начать трансляцию
@@ -481,9 +493,9 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
 
                         {/* Список источников */}
                         {sources.length > 0 && !isSharing && (
-                            <div style={{marginBottom: '20px'}}>
+                            <div style={{ marginBottom: '20px' }}>
                                 <h4>Выберите источник:</h4>
-                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                     {sources.map((source) => (
                                         <button
                                             key={source.id}
@@ -493,7 +505,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                                 border: '1px solid #ddd',
                                                 borderRadius: '4px',
                                                 cursor: 'pointer',
-                                                backgroundColor: 'white'
+                                                backgroundColor: 'white',
                                             }}
                                         >
                                             {source.name}
@@ -517,7 +529,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '4px',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
                                         }}
                                     >
                                         Остановить трансляцию
@@ -530,7 +542,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '4px',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
                                         }}
                                     >
                                         Поделиться в чате
@@ -538,7 +550,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                 </Flex>
 
                                 {/* Превью экрана */}
-                                <div style={{marginTop: '20px'}}>
+                                <div style={{ marginTop: '20px' }}>
                                     <h5>Превью:</h5>
                                     <video
                                         ref={localVideoRef}
@@ -548,7 +560,7 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
                                             width: '100%',
                                             maxWidth: '600px',
                                             border: '2px solid #007bff',
-                                            borderRadius: '5px'
+                                            borderRadius: '5px',
                                         }}
                                     />
                                 </div>
@@ -559,38 +571,44 @@ export const ScreenShareModal = ({visible, setVisible, sendInviteLinkHandler}) =
 
                 {/* Отображение ошибок */}
                 {error && (
-                    <div style={{
-                        backgroundColor: '#f8d7da',
-                        color: '#721c24',
-                        padding: '10px',
-                        borderRadius: '4px',
-                        marginTop: '20px'
-                    }}>
+                    <div
+                        style={{
+                            backgroundColor: '#f8d7da',
+                            color: '#721c24',
+                            padding: '10px',
+                            borderRadius: '4px',
+                            marginTop: '20px',
+                        }}
+                    >
                         {error}
                     </div>
                 )}
 
-                {roomId &&
-                    <div style={{
-                        marginTop: '30px',
-                        padding: '15px',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '8px',
-                        fontSize: '14px'
-                    }}>
+                {roomId && (
+                    <div
+                        style={{
+                            marginTop: '30px',
+                            padding: '15px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                        }}
+                    >
                         <p>Ссылка для подключения:</p>
-                        <code style={{
-                            display: 'block',
-                            padding: '10px',
-                            backgroundColor: '#e9ecef',
-                            borderRadius: '4px',
-                            marginBottom: '10px',
-                            wordBreak: 'break-all'
-                        }}>
+                        <code
+                            style={{
+                                display: 'block',
+                                padding: '10px',
+                                backgroundColor: '#e9ecef',
+                                borderRadius: '4px',
+                                marginBottom: '10px',
+                                wordBreak: 'break-all',
+                            }}
+                        >
                             {window.location.origin}/receiver?room={roomId}
                         </code>
                     </div>
-                }
+                )}
             </div>
         </Modal>
     );

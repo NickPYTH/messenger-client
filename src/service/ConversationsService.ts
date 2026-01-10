@@ -1,7 +1,7 @@
-import {host} from "../shared/config/constants";
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
-import {ConversationModel} from "../entities/ConversationModel";
-import {MessageModel} from "../entities/MessageModel";
+import { host } from '../shared/config/constants';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { ConversationModel } from '../entities/ConversationModel';
+import { MessageModel } from '../entities/MessageModel';
 
 export const conversationsAPI = createApi({
     reducerPath: 'conversationsAPI',
@@ -14,35 +14,35 @@ export const conversationsAPI = createApi({
             query: () => 'conversations',
             providesTags: ['conversations'],
         }),
-        create: build.mutation<ConversationModel, {member_ids: number[]}>({
+        create: build.mutation<ConversationModel, { member_ids: number[] }>({
             query: (body) => ({
                 url: `/conversations/`,
                 method: 'POST',
-                body
+                body,
             }),
-            invalidatesTags: ['conversations']
+            invalidatesTags: ['conversations'],
         }),
-        createGroup: build.mutation<ConversationModel, {member_ids: number[], title: string}>({
+        createGroup: build.mutation<ConversationModel, { member_ids: number[]; title: string }>({
             query: (body) => ({
                 url: `/conversations/`,
                 method: 'POST',
-                body: {...body, type: 'group'}
+                body: { ...body, type: 'group' },
             }),
-            invalidatesTags: ['conversations']
+            invalidatesTags: ['conversations'],
         }),
         getMessages: build.mutation<MessageModel[], number>({
             query: (id) => ({
                 url: `/conversations/${id}/messages`,
                 method: 'GET',
             }),
-            invalidatesTags: ['conversations']
+            invalidatesTags: ['conversations'],
         }),
         delete: build.mutation<void, number>({
             query: (id) => ({
                 url: `/conversations/${id}/`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['conversations']
+            invalidatesTags: ['conversations'],
         }),
-    })
+    }),
 });

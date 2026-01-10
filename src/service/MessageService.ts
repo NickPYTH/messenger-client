@@ -1,6 +1,6 @@
-import {host} from "../shared/config/constants";
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
-import {MessageModel} from "../entities/MessageModel";
+import { host } from '../shared/config/constants';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { MessageModel } from '../entities/MessageModel';
 
 export interface CreateMessageWithFilesRequest {
     conversation: number;
@@ -19,17 +19,17 @@ export const messageAPI = createApi({
             query: (body) => ({
                 url: `/messages/`,
                 method: 'POST',
-                body
+                body,
             }),
-            invalidatesTags: ['message']
+            invalidatesTags: ['message'],
         }),
         update: build.mutation<MessageModel, MessageModel>({
             query: (body) => ({
                 url: `/messages/${body.id}/`,
                 method: 'PATCH',
-                body: {text: body.text}
+                body: { text: body.text },
             }),
-            invalidatesTags: ['message']
+            invalidatesTags: ['message'],
         }),
         createWithFiles: build.mutation<MessageModel, CreateMessageWithFilesRequest>({
             query: (data) => {
@@ -54,14 +54,14 @@ export const messageAPI = createApi({
                     body: formData,
                 };
             },
-            invalidatesTags: ['message']
+            invalidatesTags: ['message'],
         }),
         delete: build.mutation<void, number>({
             query: (id) => ({
                 url: `/messages/${id}/`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['message']
+            invalidatesTags: ['message'],
         }),
-    })
+    }),
 });

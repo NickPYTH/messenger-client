@@ -1,6 +1,6 @@
 // context/WebSocketContext.tsx
 import React, { createContext, useContext, useEffect, useRef, useCallback, useState } from 'react';
-import ReduxProvider from "../../ReduxProvider/ui/ReduxProvider";
+import ReduxProvider from '../../ReduxProvider/ui/ReduxProvider';
 
 interface WebSocketContextType {
     sendMessage: (data: any) => void;
@@ -24,8 +24,10 @@ const WebSocketProvider: React.FC<{
 
     // Функция подключения
     const connect = useCallback(() => {
-        if (socketRef.current?.readyState === WebSocket.OPEN ||
-            socketRef.current?.readyState === WebSocket.CONNECTING) {
+        if (
+            socketRef.current?.readyState === WebSocket.OPEN ||
+            socketRef.current?.readyState === WebSocket.CONNECTING
+        ) {
             return;
         }
 
@@ -45,11 +47,11 @@ const WebSocketProvider: React.FC<{
 
                     // Вызываем все обработчики для этого типа
                     const typeHandlers = handlersRef.current.get(type) || [];
-                    typeHandlers.forEach(handler => handler(data));
+                    typeHandlers.forEach((handler) => handler(data));
 
                     // Вызываем глобальные обработчики
                     const allHandlers = handlersRef.current.get('*') || [];
-                    allHandlers.forEach(handler => handler(data));
+                    allHandlers.forEach((handler) => handler(data));
                 } catch (error) {
                     console.error(error);
                 }
@@ -63,7 +65,9 @@ const WebSocketProvider: React.FC<{
                 // Переподключение
                 if (reconnectAttemptsRef.current < maxReconnectAttempts) {
                     reconnectAttemptsRef.current++;
-                    console.log(`Переподключение через ${reconnectInterval/1000}сек (попытка; ${reconnectAttemptsRef.current})`);
+                    console.log(
+                        `Переподключение через ${reconnectInterval / 1000}сек (попытка; ${reconnectAttemptsRef.current})`
+                    );
                     setTimeout(connect, reconnectInterval);
                 }
             };

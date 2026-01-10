@@ -1,3 +1,3 @@
-import WebSocketProvider from "./ui/WebSocketProvider";
+import WebSocketProvider from './ui/WebSocketProvider';
 
-export {WebSocketProvider};
+export { WebSocketProvider };

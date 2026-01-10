@@ -22,11 +22,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
             {
                 urls: ['turn:localhost:3478'],
                 username: 'testuser',
-                credential: 'testpassword'
+                credential: 'testpassword',
             },
             {
-                urls: ['stun:stun.l.google.com:19302']
-            }
-        ]
-    })
+                urls: ['stun:stun.l.google.com:19302'],
+            },
+        ],
+    }),
 });

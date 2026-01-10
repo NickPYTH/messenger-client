@@ -1,17 +1,19 @@
 // MainPage.tsx (ваш текущий файл УПРОЩЕННЫЙ)
-import {Flex} from 'antd';
-import {LeftMenu} from './LeftMenu/LeftMenu';
-import {ChatWindow} from './ChatWindow/ChatWindow';
-import {useEffect} from 'react';
-import {userAPI} from "../../../service/UserService";
-import {useDispatch, useSelector} from "react-redux";
-import {setCurrentUser} from "../../../store/slice/GeneralSlice";
-import {RootStateType} from '../../../store/store';
-import {useWebSocket} from "../../../app/WebSocketProvider/ui/WebSocketProvider";
+import { Flex } from 'antd';
+import { LeftMenu } from './LeftMenu/LeftMenu';
+import { ChatWindow } from './ChatWindow/ChatWindow';
+import { useEffect } from 'react';
+import { userAPI } from '../../../service/UserService';
+import { useDispatch, useSelector } from 'react-redux';
+import { setCurrentUser } from '../../../store/slice/GeneralSlice';
+import { RootStateType } from '../../../store/store';
+import { useWebSocket } from '../../../app/WebSocketProvider/ui/WebSocketProvider';
 
 const MainPage = () => {
     const dispatch = useDispatch();
-    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
+    const selectedConversationId = useSelector(
+        (state: RootStateType) => state.currentUser.selectedConversation
+    );
 
     const { isConnected, registerHandler, sendMessage } = useWebSocket();
     const { data: currentUserData } = userAPI.useGetCurrentQuery();
@@ -25,13 +27,13 @@ const MainPage = () => {
     return (
         <Flex style={{ background: '#d8e3f4', height: '100vh', overflow: 'hidden' }}>
             <LeftMenu />
-            {selectedConversationId ?
+            {selectedConversationId ? (
                 <ChatWindow />
-                :
-                <Flex justify={'center'} align={'center'} style={{minWidth: '70vw'}}>
+            ) : (
+                <Flex justify={'center'} align={'center'} style={{ minWidth: '70vw' }}>
                     Выберите, кому хотели бы написать
                 </Flex>
-            }
+            )}
 
             {/*<div style={{*/}
             {/*    position: 'fixed',*/}

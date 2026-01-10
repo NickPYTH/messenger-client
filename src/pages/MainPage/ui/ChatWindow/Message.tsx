@@ -1,22 +1,31 @@
-import {MessageModel} from "../../../../entities/MessageModel";
-import {AttachmentModel} from "../../../../entities/AttachmentModel";
-import {isLikelyCode} from "../../../../shared/config/utils.py";
-import {Button, Dropdown, Flex, MenuProps, message as antdMessage, Modal, Typography, Upload} from "antd";
+import { MessageModel } from '../../../../entities/MessageModel';
+import { AttachmentModel } from '../../../../entities/AttachmentModel';
+import { isLikelyCode } from '../../../../shared/config/utils.py';
+import {
+    Button,
+    Dropdown,
+    Flex,
+    MenuProps,
+    message as antdMessage,
+    Modal,
+    Typography,
+    Upload,
+} from 'antd';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import {docco} from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import React, {useRef, useState} from "react";
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import React, { useRef, useState } from 'react';
 import {
     CodeOutlined,
     CopyOutlined,
     DeleteOutlined,
     DownloadOutlined,
     EditOutlined,
-    MoreOutlined
+    MoreOutlined,
 } from '@ant-design/icons';
-import {DeleteMessageModal} from "./DeleteMessageModal";
-import {EditMessageModal} from "./EditMessageModal";
+import { DeleteMessageModal } from './DeleteMessageModal';
+import { EditMessageModal } from './EditMessageModal';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 type PropsType = {
     data: MessageModel;
@@ -25,10 +34,9 @@ type PropsType = {
     onDelete?: (messageId: string) => void;
     onCopy?: (text: string) => void;
     onReply?: (message: MessageModel) => void;
-}
+};
 
 export const Message = (props: PropsType) => {
-
     // States
     const [contextMenuVisible, setContextMenuVisible] = useState(false);
     const [deleteMessageModalVisible, setDeleteMessageModalVisible] = useState(false);
@@ -68,11 +76,10 @@ export const Message = (props: PropsType) => {
     // Функции для пунктов меню
     const handleCopyText = () => {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(props.data.text)
-                .then(() => {
-                    antdMessage.success('Текст скопирован');
-                    props.onCopy?.(props.data.text);
-                })
+            navigator.clipboard.writeText(props.data.text).then(() => {
+                antdMessage.success('Текст скопирован');
+                props.onCopy?.(props.data.text);
+            });
         }
         setContextMenuVisible(false);
     };
@@ -80,11 +87,17 @@ export const Message = (props: PropsType) => {
         const codeBlocks = props.data.text.match(/```[\s\S]*?```/g);
         if (codeBlocks && codeBlocks.length > 0) {
             const allCode = codeBlocks
-                .map(block => block.replace(/```\w*\n?/, '').replace(/```$/, '').trim())
+                .map((block) =>
+                    block
+                        .replace(/```\w*\n?/, '')
+                        .replace(/```$/, '')
+                        .trim()
+                )
                 .join('\n\n');
 
             if (navigator.clipboard) {
-                navigator.clipboard.writeText(allCode)
+                navigator.clipboard
+                    .writeText(allCode)
                     .then(() => {
                         antdMessage.success('Код скопирован');
                         props.onCopy?.(allCode);
@@ -93,8 +106,11 @@ export const Message = (props: PropsType) => {
                         Modal.info({
                             title: 'Скопируйте код',
                             content: (
-                                <div style={{marginTop: 16}}>
-                                    <SyntaxHighlighter language={detectLanguage(allCode)} style={docco}>
+                                <div style={{ marginTop: 16 }}>
+                                    <SyntaxHighlighter
+                                        language={detectLanguage(allCode)}
+                                        style={docco}
+                                    >
                                         {allCode}
                                     </SyntaxHighlighter>
                                 </div>
@@ -116,7 +132,7 @@ export const Message = (props: PropsType) => {
     };
     const handleDownloadAttachments = () => {
         if (props.data.attachments && props.data.attachments.length > 0) {
-            props.data.attachments.forEach(attachment => {
+            props.data.attachments.forEach((attachment) => {
                 const link = document.createElement('a');
                 link.href = attachment.file_url;
                 link.download = attachment.file_name;
@@ -133,7 +149,7 @@ export const Message = (props: PropsType) => {
         const items: MenuProps['items'] = [
             {
                 key: 'copy-text',
-                icon: <CopyOutlined/>,
+                icon: <CopyOutlined />,
                 label: 'Копировать текст',
                 onClick: handleCopyText,
             },
@@ -143,7 +159,7 @@ export const Message = (props: PropsType) => {
         if (props.data.text.includes('```') || isLikelyCode(props.data.text)) {
             items.splice(1, 0, {
                 key: 'copy-code',
-                icon: <CodeOutlined/>,
+                icon: <CodeOutlined />,
                 label: 'Копировать код',
                 onClick: handleCopyCode,
             });
@@ -153,7 +169,7 @@ export const Message = (props: PropsType) => {
         if (props.data.attachments && props.data.attachments.length > 0) {
             items.push({
                 key: 'download',
-                icon: <DownloadOutlined/>,
+                icon: <DownloadOutlined />,
                 label: `Скачать файлы (${props.data.attachments.length})`,
                 onClick: handleDownloadAttachments,
             });
@@ -162,16 +178,16 @@ export const Message = (props: PropsType) => {
         // Если сообщение от текущего пользователя, добавляем редактирование и удаление
         if (props.fromYou) {
             items.push(
-                {type: 'divider'},
+                { type: 'divider' },
                 {
                     key: 'edit',
-                    icon: <EditOutlined/>,
+                    icon: <EditOutlined />,
                     label: 'Редактировать',
                     onClick: handleEdit,
                 },
                 {
                     key: 'delete',
-                    icon: <DeleteOutlined/>,
+                    icon: <DeleteOutlined />,
                     label: 'Удалить',
                     danger: true,
                     onClick: handleDelete,
@@ -197,34 +213,46 @@ export const Message = (props: PropsType) => {
                         margin: '8px 0',
                         backgroundColor: '#f5f5f5',
                         maxWidth: '100%',
-                        overflowX: 'auto'
+                        overflowX: 'auto',
                     }}
                 >
                     {text.trim()}
                 </SyntaxHighlighter>
             );
-        }
-        else if (/https?:\/\/[^\/]+\/receiver\?room=/.test(text))
-            return <Flex vertical gap={'small'}>
-                <Text>Моя транляция</Text>
-                <Flex gap={'small'}>
-                    <Button onClick={() => window.open(text, '_blank')}>Подключиться</Button>
-                    <Button onClick={() => navigator.clipboard.writeText(text)}>Скопировать ссылку</Button>
+        } else if (/https?:\/\/[^\/]+\/receiver\?room=/.test(text))
+            return (
+                <Flex vertical gap={'small'}>
+                    <Text>Моя транляция</Text>
+                    <Flex gap={'small'}>
+                        <Button onClick={() => window.open(text, '_blank')}>Подключиться</Button>
+                        <Button onClick={() => navigator.clipboard.writeText(text)}>
+                            Скопировать ссылку
+                        </Button>
+                    </Flex>
                 </Flex>
-            </Flex>
+            );
         return <span>{text}</span>;
     };
     // -----
 
     return (
         <>
-            {deleteMessageModalVisible &&
-                <DeleteMessageModal data={props.data} setVisible={setDeleteMessageModalVisible}
-                                    visible={deleteMessageModalVisible}/>}
-            {editMessageModalVisible && <EditMessageModal data={props.data} setVisible={setEditMessageModalVisible}
-                                                          visible={editMessageModalVisible}/>}
+            {deleteMessageModalVisible && (
+                <DeleteMessageModal
+                    data={props.data}
+                    setVisible={setDeleteMessageModalVisible}
+                    visible={deleteMessageModalVisible}
+                />
+            )}
+            {editMessageModalVisible && (
+                <EditMessageModal
+                    data={props.data}
+                    setVisible={setEditMessageModalVisible}
+                    visible={editMessageModalVisible}
+                />
+            )}
             <Dropdown
-                menu={{items: getMenuItems()}}
+                menu={{ items: getMenuItems() }}
                 trigger={['contextMenu']}
                 open={contextMenuVisible}
                 onOpenChange={setContextMenuVisible}
@@ -235,7 +263,7 @@ export const Message = (props: PropsType) => {
                     style={{
                         display: 'flex',
                         alignSelf: props.fromYou ? 'end' : 'start',
-                        maxWidth: "65vw",
+                        maxWidth: '65vw',
                         margin: '0 10px 12px 0',
                         cursor: 'context-menu',
                         position: 'relative',
@@ -244,17 +272,19 @@ export const Message = (props: PropsType) => {
                 >
                     <Flex vertical gap={'small'}>
                         {/* Кнопка меню */}
-                        <div style={{
-                            position: 'absolute',
-                            top: 0,
-                            right: props.fromYou ? 'auto' : -30,
-                            left: props.fromYou ? -30 : 'auto',
-                            opacity: 0,
-                            transition: 'opacity 0.2s',
-                        }}>
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                right: props.fromYou ? 'auto' : -30,
+                                left: props.fromYou ? -30 : 'auto',
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                            }}
+                        >
                             <Button
                                 type="text"
-                                icon={<MoreOutlined/>}
+                                icon={<MoreOutlined />}
                                 size="small"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -276,26 +306,31 @@ export const Message = (props: PropsType) => {
                         </div>
 
                         {/* Время отправки */}
-                        <Flex style={{
-                            fontSize: 10,
-                            color: '#888',
-                            paddingLeft: '4px',
-                            justifyContent: props.fromYou ? 'flex-end' : 'flex-start'
-                        }}>
-                            {props.data.is_edited && "Изменено"} {props.data.sent_at}
+                        <Flex
+                            style={{
+                                fontSize: 10,
+                                color: '#888',
+                                paddingLeft: '4px',
+                                justifyContent: props.fromYou ? 'flex-end' : 'flex-start',
+                            }}
+                        >
+                            {props.data.is_edited && 'Изменено'} {props.data.sent_at}
                         </Flex>
 
                         {/* Вложения */}
                         {props.data.attachments && props.data.attachments.length > 0 && (
                             <Upload
-                                defaultFileList={props.data.attachments.map((file: AttachmentModel) => ({
-                                    uid: file.id.toString(),
-                                    name: file.file_name.length > 37 ?
-                                        `${file.file_name.slice(0, 34)}...` :
-                                        file.file_name,
-                                    status: 'done',
-                                    url: `${file.file_url}`,
-                                }))}
+                                defaultFileList={props.data.attachments.map(
+                                    (file: AttachmentModel) => ({
+                                        uid: file.id.toString(),
+                                        name:
+                                            file.file_name.length > 37
+                                                ? `${file.file_name.slice(0, 34)}...`
+                                                : file.file_name,
+                                        status: 'done',
+                                        url: `${file.file_url}`,
+                                    })
+                                )}
                                 showUploadList={{
                                     showRemoveIcon: false,
                                     showDownloadIcon: true,

@@ -14,7 +14,7 @@ export const isLikelyCode = (text: string): boolean => {
         /^[\s]*[{}[\];]+/, // Начинается со скобок или точки с запятой
     ];
 
-    if (codeMarkers.some(pattern => pattern.test(trimmedText))) {
+    if (codeMarkers.some((pattern) => pattern.test(trimmedText))) {
         return true;
     }
 
@@ -25,16 +25,47 @@ export const isLikelyCode = (text: string): boolean => {
 
     // 3. Подсчет ключевых слов программирования
     const keywords = [
-        'function', 'class', 'interface', 'module', 'import', 'export',
-        'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return',
-        'try', 'catch', 'finally', 'throw', 'new', 'this', 'async', 'await',
-        'public', 'private', 'protected', 'static', 'void', 'int', 'string',
-        'boolean', 'null', 'undefined', 'true', 'false', 'console', 'log'
+        'function',
+        'class',
+        'interface',
+        'module',
+        'import',
+        'export',
+        'const',
+        'let',
+        'var',
+        'if',
+        'else',
+        'for',
+        'while',
+        'return',
+        'try',
+        'catch',
+        'finally',
+        'throw',
+        'new',
+        'this',
+        'async',
+        'await',
+        'public',
+        'private',
+        'protected',
+        'static',
+        'void',
+        'int',
+        'string',
+        'boolean',
+        'null',
+        'undefined',
+        'true',
+        'false',
+        'console',
+        'log',
     ];
 
     const keywordCount = keywords.reduce((count, keyword) => {
         const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-        return count + ((trimmedText.match(regex) || []).length);
+        return count + (trimmedText.match(regex) || []).length;
     }, 0);
 
     // 4. Проверка структуры (много строк, отступы)
@@ -43,7 +74,7 @@ export const isLikelyCode = (text: string): boolean => {
     const avgLineLength = trimmedText.length / lineCount;
 
     // Проверяем отступы в коде
-    const linesWithIndent = lines.filter(line => /^\s{2,}/.test(line)).length;
+    const linesWithIndent = lines.filter((line) => /^\s{2,}/.test(line)).length;
     const indentRatio = linesWithIndent / lineCount;
 
     // 5. Вычисляем общую вероятность
@@ -115,10 +146,18 @@ const autoFormatCode = (text: string): string => {
         if (extensionMatch) {
             const ext = extensionMatch[1];
             const langMap: Record<string, string> = {
-                'js': 'javascript', 'ts': 'typescript', 'py': 'python',
-                'java': 'java', 'go': 'go', 'rs': 'rust',
-                'cpp': 'cpp', 'c': 'c', 'cs': 'csharp',
-                'php': 'php', 'rb': 'ruby', 'swift': 'swift'
+                js: 'javascript',
+                ts: 'typescript',
+                py: 'python',
+                java: 'java',
+                go: 'go',
+                rs: 'rust',
+                cpp: 'cpp',
+                c: 'c',
+                cs: 'csharp',
+                php: 'php',
+                rb: 'ruby',
+                swift: 'swift',
             };
             return langMap[ext] || 'text';
         }

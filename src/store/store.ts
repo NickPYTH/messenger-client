@@ -1,12 +1,11 @@
-import {combineReducers, configureStore} from "@reduxjs/toolkit";
-import generalSlice, {CurrentUserModelStateType} from "./slice/GeneralSlice";
-import {userAPI} from "../service/UserService";
-import {conversationsAPI} from "../service/ConversationsService";
-import {messageAPI} from "../service/MessageService";
-
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import generalSlice, { CurrentUserModelStateType } from './slice/GeneralSlice';
+import { userAPI } from '../service/UserService';
+import { conversationsAPI } from '../service/ConversationsService';
+import { messageAPI } from '../service/MessageService';
 
 export type RootStateType = {
-     currentUser: CurrentUserModelStateType
+    currentUser: CurrentUserModelStateType;
 };
 
 const rootReducer = combineReducers({
@@ -14,19 +13,19 @@ const rootReducer = combineReducers({
     [userAPI.reducerPath]: userAPI.reducer,
     [conversationsAPI.reducerPath]: conversationsAPI.reducer,
     [messageAPI.reducerPath]: messageAPI.reducer,
-})
+});
 
 export const setupStore = () => {
     return configureStore({
         reducer: rootReducer,
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware()
-            .concat(userAPI.middleware)
-            .concat(conversationsAPI.middleware)
-            .concat(messageAPI.middleware)
-    })
-}
+                .concat(userAPI.middleware)
+                .concat(conversationsAPI.middleware)
+                .concat(messageAPI.middleware),
+    });
+};
 
-export type RootState = ReturnType<typeof rootReducer>
-export type AppStore = ReturnType<typeof setupStore>
-export type AppDispatch = AppStore['dispatch']
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore['dispatch'];

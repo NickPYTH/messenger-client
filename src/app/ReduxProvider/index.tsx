@@ -1,3 +1,3 @@
-import ReduxProvider from "./ui/ReduxProvider";
+import ReduxProvider from './ui/ReduxProvider';
 
-export {ReduxProvider};
+export { ReduxProvider };

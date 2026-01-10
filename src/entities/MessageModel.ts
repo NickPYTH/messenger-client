@@ -1,5 +1,5 @@
-import {UserModel} from "./UserModel";
-import {AttachmentModel} from "./AttachmentModel";
+import { UserModel } from './UserModel';
+import { AttachmentModel } from './AttachmentModel';
 
 export type MessageModel = {
     id?: number;
@@ -10,4 +10,4 @@ export type MessageModel = {
     sent_at?: string;
     edited_at?: string;
     is_edited?: boolean;
-}
+};

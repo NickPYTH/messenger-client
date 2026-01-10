@@ -6,7 +6,7 @@ export type AttachmentModel = {
     uploaded_at: string;
     file_url: string;
     download_url: string;
-}
+};
 
 export interface CreateMessageDTO {
     conversation: number;

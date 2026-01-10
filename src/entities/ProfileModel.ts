@@ -7,4 +7,4 @@ export type ProfileModel = {
     phone: string;
     status: string;
     last_seen: string;
-}
+};

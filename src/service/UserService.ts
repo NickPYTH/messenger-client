@@ -1,6 +1,6 @@
-import {host} from "../shared/config/constants";
+import { host } from '../shared/config/constants';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import {UserModel} from "../entities/UserModel";
+import { UserModel } from '../entities/UserModel';
 export const userAPI = createApi({
     reducerPath: 'userAPI',
     baseQuery: fetchBaseQuery({
@@ -16,5 +16,5 @@ export const userAPI = createApi({
             query: () => 'users',
             providesTags: ['user'],
         }),
-    })
+    }),
 });

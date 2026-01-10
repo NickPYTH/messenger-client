@@ -10,7 +10,7 @@ import {
     message,
     Space,
     Typography,
-    Tag
+    Tag,
 } from 'antd';
 import {
     UploadOutlined,
@@ -18,13 +18,13 @@ import {
     EyeOutlined,
     DeleteOutlined,
     CloseOutlined,
-    CheckOutlined
+    CheckOutlined,
 } from '@ant-design/icons';
 
 const { Text } = Typography;
 const { Dragger } = Upload;
 
-export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFiles }:any) => {
+export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFiles }: any) => {
     const [fileList, setFileList] = useState<any[]>([]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
@@ -36,15 +36,17 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
         if (visible) {
             if (existingFiles && existingFiles.length > 0) {
                 // Сравниваем только если массив изменился по содержанию
-                const existingFilesString = JSON.stringify(existingFiles.map((f:any ) => f.uid).sort());
-                const currentFileListString = JSON.stringify(fileList.map(f => f.uid).sort());
+                const existingFilesString = JSON.stringify(
+                    existingFiles.map((f: any) => f.uid).sort()
+                );
+                const currentFileListString = JSON.stringify(fileList.map((f) => f.uid).sort());
 
                 if (existingFilesString !== currentFileListString) {
                     setFileList(
-                        existingFiles.map((file: any, index:any) => ({
+                        existingFiles.map((file: any, index: any) => ({
                             ...file,
                             uid: file.uid || `existing-${index}`,
-                            status: 'done'
+                            status: 'done',
                         }))
                     );
                 }
@@ -65,7 +67,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
         'text/csv': ['csv'],
         'application/zip': ['zip'],
         'audio/*': ['mp3', 'wav'],
-        'video/*': ['mp4', 'avi', 'mov']
+        'video/*': ['mp4', 'avi', 'mov'],
     };
 
     const maxFileSize = 100 * 1024 * 1024; // 100MB
@@ -73,12 +75,12 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
     const maxFiles = 10;
 
     // Получить расширение файла
-    const getFileExtension = (filename:string) => {
-        return filename.split('.').pop()?.toLowerCase() ?? "";
+    const getFileExtension = (filename: string) => {
+        return filename.split('.').pop()?.toLowerCase() ?? '';
     };
 
     // Получить тип файла по расширению
-    const getMimeType = (filename:string) => {
+    const getMimeType = (filename: string) => {
         const ext = getFileExtension(filename);
         for (const [mime, exts] of Object.entries(supportedFormats)) {
             if (exts.includes(ext)) {
@@ -89,7 +91,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
     };
 
     // Получить иконку для типа файла
-    const getFileIcon = (fileType:string, filename:string) => {
+    const getFileIcon = (fileType: string, filename: string) => {
         if (fileType.includes('image/')) return '🖼️';
         if (fileType.includes('pdf')) return '📄';
         if (fileType.includes('word') || fileType.includes('document')) return '📝';
@@ -102,7 +104,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
     };
 
     // Форматирование размера файла
-    const formatFileSize = (bytes:any) => {
+    const formatFileSize = (bytes: any) => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -111,7 +113,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
     };
 
     // Валидация файла перед добавлением
-    const validateFile = (file:any) => {
+    const validateFile = (file: any) => {
         const ext = getFileExtension(file.name);
         let isValidType = false;
 
@@ -130,14 +132,16 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
 
         // Проверка размера
         if (file.size > maxFileSize) {
-            message.error(`Файл ${file.name} превышает максимальный размер ${maxFileSize / (1024*1024)}MB`);
+            message.error(
+                `Файл ${file.name} превышает максимальный размер ${maxFileSize / (1024 * 1024)}MB`
+            );
             return false;
         }
 
         // Проверка общего размера
         const totalSize = [...fileList, file].reduce((sum, f) => sum + f.size, 0);
         if (totalSize > maxTotalSize) {
-            message.error(`Общий размер файлов превышает ${maxTotalSize / (1024*1024)}MB`);
+            message.error(`Общий размер файлов превышает ${maxTotalSize / (1024 * 1024)}MB`);
             return false;
         }
 
@@ -151,7 +155,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
     };
 
     // Обработчик добавления файлов
-    const handleBeforeUpload = (file:any) => {
+    const handleBeforeUpload = (file: any) => {
         if (!validateFile(file)) {
             return Upload.LIST_IGNORE;
         }
@@ -163,23 +167,23 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
             type: getMimeType(file.name),
             originFileObj: file,
             status: 'waiting',
-            percent: 0
+            percent: 0,
         };
 
-        setFileList(prev => [...prev, newFile]);
+        setFileList((prev) => [...prev, newFile]);
         return false; // Отменяем автоматическую загрузку
     };
 
     // Удаление файла
-    const handleRemove = (file:any) => {
-        setFileList(prev => prev.filter(f => f.uid !== file.uid));
+    const handleRemove = (file: any) => {
+        setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
     };
 
     // Предпросмотр файла
-    const handlePreview = (file:any) => {
+    const handlePreview = (file: any) => {
         if (file.type.includes('image/')) {
             const reader = new FileReader();
-            reader.onload = (e:any) => {
+            reader.onload = (e: any) => {
                 setPreviewImage(e.target.result);
                 setPreviewVisible(true);
             };
@@ -194,13 +198,13 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
 
     // Подготовка файлов для отправки
     const prepareFilesForUpload = () => {
-        return fileList.map(file => ({
+        return fileList.map((file) => ({
             uid: file.uid,
             name: file.name,
             size: file.size,
             type: file.type,
             originFileObj: file.originFileObj || file,
-            status: 'ready'
+            status: 'ready',
         }));
     };
 
@@ -242,7 +246,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
                         icon={<CheckOutlined />}
                     >
                         Прикрепить ({fileList.length})
-                    </Button>
+                    </Button>,
                 ]}
             >
                 <div style={{ marginBottom: 16 }}>
@@ -255,11 +259,9 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
                         <p className="ant-upload-drag-icon">
                             <UploadOutlined />
                         </p>
-                        <p className="ant-upload-text">
-                            Нажмите или перетащите файлы для загрузки
-                        </p>
+                        <p className="ant-upload-text">Нажмите или перетащите файлы для загрузки</p>
                         <p className="ant-upload-hint">
-                            Максимум {maxFiles} файлов, каждый до {maxFileSize / (1024*1024)}MB
+                            Максимум {maxFiles} файлов, каждый до {maxFileSize / (1024 * 1024)}MB
                         </p>
                     </Dragger>
                 </div>
@@ -297,14 +299,14 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
                                             icon={<DeleteOutlined />}
                                             onClick={() => handleRemove(file)}
                                             title="Удалить"
-                                        />
+                                        />,
                                     ]}
                                 >
                                     <List.Item.Meta
                                         avatar={
                                             <span style={{ fontSize: '20px' }}>
-                        {getFileIcon(file.type, file.name)}
-                      </span>
+                                                {getFileIcon(file.type, file.name)}
+                                            </span>
                                         }
                                         title={
                                             <Text ellipsis style={{ maxWidth: 300 }}>
@@ -313,7 +315,9 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
                                         }
                                         description={
                                             <Space size="small">
-                                                <Text type="secondary">{formatFileSize(file.size)}</Text>
+                                                <Text type="secondary">
+                                                    {formatFileSize(file.size)}
+                                                </Text>
                                                 <Tag color="default">
                                                     {getFileExtension(file.name).toUpperCase()}
                                                 </Tag>
@@ -333,11 +337,7 @@ export const AttachmentModal = ({ visible, onCancel, onFilesSelected, existingFi
                     onCancel={() => setPreviewVisible(false)}
                     width={800}
                 >
-                    <Image
-                        src={previewImage}
-                        alt="Предпросмотр"
-                        style={{ width: '100%' }}
-                    />
+                    <Image src={previewImage} alt="Предпросмотр" style={{ width: '100%' }} />
                 </Modal>
             </Modal>
         </>

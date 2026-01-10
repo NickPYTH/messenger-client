@@ -1,6 +1,6 @@
-import {CONVERSATION_TYPE} from "../shared/config/constants";
-import {UserModel} from "./UserModel";
-import {MessageModel} from "./MessageModel";
+import { CONVERSATION_TYPE } from '../shared/config/constants';
+import { UserModel } from './UserModel';
+import { MessageModel } from './MessageModel';
 
 export type ConversationModel = {
     id: number;
@@ -10,4 +10,4 @@ export type ConversationModel = {
     created_at?: string;
     last_message_at?: string;
     last_message?: MessageModel;
-}
+};

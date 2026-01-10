@@ -14,19 +14,23 @@ function handleRequestOffer(ws, data) {
     const clientInfo = clients.get(ws);
 
     if (!clientInfo || clientInfo.roomId !== roomId) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Вы не в этой комнате'
-        }));
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                message: 'Вы не в этой комнате',
+            })
+        );
         return;
     }
 
     const room = rooms.get(roomId);
     if (!room) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Комната не найдена'
-        }));
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                message: 'Комната не найдена',
+            })
+        );
         return;
     }
 
@@ -36,30 +40,36 @@ function handleRequestOffer(ws, data) {
     const savedOffer = pendingOffers.get(roomId);
     if (savedOffer) {
         console.log(`📤 Отправляю сохраненный оффер по запросу`);
-        ws.send(JSON.stringify({
-            type: 'offer',
-            sdp: savedOffer.sdp,
-            from: savedOffer.from || 'sender',
-            roomId: roomId,
-            timestamp: savedOffer.timestamp
-        }));
+        ws.send(
+            JSON.stringify({
+                type: 'offer',
+                sdp: savedOffer.sdp,
+                from: savedOffer.from || 'sender',
+                roomId: roomId,
+                timestamp: savedOffer.timestamp,
+            })
+        );
     } else {
         console.log(`ℹ️ Нет сохраненного оффера для комнаты ${roomId}`);
 
         // Запрашиваем оффер у отправителя
         if (room.sender && room.sender.readyState === WebSocket.OPEN) {
-            room.sender.send(JSON.stringify({
-                type: 'offer-requested',
-                from: 'server',
-                roomId: roomId,
-                requester: clientInfo.username
-            }));
+            room.sender.send(
+                JSON.stringify({
+                    type: 'offer-requested',
+                    from: 'server',
+                    roomId: roomId,
+                    requester: clientInfo.username,
+                })
+            );
         }
 
-        ws.send(JSON.stringify({
-            type: 'no-offer',
-            message: 'Оффер еще не создан отправителем'
-        }));
+        ws.send(
+            JSON.stringify({
+                type: 'no-offer',
+                message: 'Оффер еще не создан отправителем',
+            })
+        );
     }
 }
 
@@ -132,10 +142,12 @@ function handleCreateRoom(ws, data) {
         // Комната существует
         if (room.isActive) {
             // Комната уже активна - ошибка
-            ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Комната уже активна'
-            }));
+            ws.send(
+                JSON.stringify({
+                    type: 'error',
+                    message: 'Комната уже активна',
+                })
+            );
             return;
         } else {
             // Комната существует, но неактивна - возобновляем
@@ -158,7 +170,7 @@ function handleCreateRoom(ws, data) {
             sender: ws,
             createdAt: new Date(),
             lastActive: new Date(),
-            isActive: true
+            isActive: true,
         };
         rooms.set(roomId, room);
 
@@ -168,15 +180,17 @@ function handleCreateRoom(ws, data) {
     clients.set(ws, {
         type: 'sender',
         roomId: roomId,
-        username: data.username || 'Отправитель'
+        username: data.username || 'Отправитель',
     });
 
-    ws.send(JSON.stringify({
-        type: 'room-created',
-        roomId: roomId,
-        roomName: room.name,
-        isResumed: !!rooms.get(roomId)?.createdAt // Флаг возобновления
-    }));
+    ws.send(
+        JSON.stringify({
+            type: 'room-created',
+            roomId: roomId,
+            roomName: room.name,
+            isResumed: !!rooms.get(roomId)?.createdAt, // Флаг возобновления
+        })
+    );
 
     // Уведомляем всех о новом списке комнат
     broadcastRoomList();
@@ -187,10 +201,12 @@ function handleJoinRoom(ws, data) {
     const room = rooms.get(roomId);
 
     if (!room || !room.isActive) {
-        ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Комната не найдена или трансляция завершена'
-        }));
+        ws.send(
+            JSON.stringify({
+                type: 'error',
+                message: 'Комната не найдена или трансляция завершена',
+            })
+        );
         return;
     }
 
@@ -199,7 +215,7 @@ function handleJoinRoom(ws, data) {
     clients.set(ws, {
         type: 'receiver',
         roomId: roomId,
-        username: data.username || 'Зритель'
+        username: data.username || 'Зритель',
     });
 
     console.log(`👤 Клиент присоединился к комнате ${roomId}`);
@@ -207,20 +223,24 @@ function handleJoinRoom(ws, data) {
 
     // Уведомляем отправителя о новом зрителе
     if (room.sender && room.sender.readyState === WebSocket.OPEN) {
-        room.sender.send(JSON.stringify({
-            type: 'viewer-joined',
-            viewerId: ws._socket.remoteAddress,
-            timestamp: new Date().toISOString()
-        }));
+        room.sender.send(
+            JSON.stringify({
+                type: 'viewer-joined',
+                viewerId: ws._socket.remoteAddress,
+                timestamp: new Date().toISOString(),
+            })
+        );
     }
 
     // Отправляем информацию о комнате новому клиенту
-    ws.send(JSON.stringify({
-        type: 'room-joined',
-        roomId: roomId,
-        roomName: room.name,
-        sender: clients.get(room.sender)?.username || 'Отправитель'
-    }));
+    ws.send(
+        JSON.stringify({
+            type: 'room-joined',
+            roomId: roomId,
+            roomName: room.name,
+            sender: clients.get(room.sender)?.username || 'Отправитель',
+        })
+    );
 
     // 🔥 КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
     // Если есть сохраненный оффер для этой комнаты - отправляем его новому клиенту
@@ -231,13 +251,15 @@ function handleJoinRoom(ws, data) {
         // Даем клиенту время обработать room-joined
         setTimeout(() => {
             if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'offer',
-                    sdp: savedOffer.sdp,
-                    from: savedOffer.from || 'sender',
-                    roomId: roomId,
-                    timestamp: savedOffer.timestamp
-                }));
+                ws.send(
+                    JSON.stringify({
+                        type: 'offer',
+                        sdp: savedOffer.sdp,
+                        from: savedOffer.from || 'sender',
+                        roomId: roomId,
+                        timestamp: savedOffer.timestamp,
+                    })
+                );
                 console.log(`   ✅ Оффер отправлен новому клиенту`);
             }
         }, 500);
@@ -256,15 +278,17 @@ function handleListRooms(ws) {
             createdAt: room.createdAt,
             lastActive: room.lastActive,
             sender: clients.get(room.sender)?.username || 'Неизвестно',
-            status: room.isActive ? 'active' : 'paused'
+            status: room.isActive ? 'active' : 'paused',
         }));
 
     console.log(`📊 Отправляю список комнат: ${activeRooms.length} активных`);
 
-    ws.send(JSON.stringify({
-        type: 'room-list',
-        rooms: activeRooms
-    }));
+    ws.send(
+        JSON.stringify({
+            type: 'room-list',
+            rooms: activeRooms,
+        })
+    );
 }
 
 function handleLeaveRoom(ws) {
@@ -286,12 +310,14 @@ function handleLeaveRoom(ws) {
         pendingOffers.delete(clientInfo.roomId);
 
         // Уведомляем всех зрителей
-        room.clients.forEach(client => {
+        room.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                    type: 'broadcast-ended',
-                    message: 'Трансляция завершена'
-                }));
+                client.send(
+                    JSON.stringify({
+                        type: 'broadcast-ended',
+                        message: 'Трансляция завершена',
+                    })
+                );
             }
         });
 
@@ -304,7 +330,8 @@ function handleLeaveRoom(ws) {
     setInterval(() => {
         const now = Date.now();
         for (const [roomId, offer] of pendingOffers.entries()) {
-            if (now - offer.timestamp > 5 * 60 * 1000) { // 5 минут
+            if (now - offer.timestamp > 5 * 60 * 1000) {
+                // 5 минут
                 pendingOffers.delete(roomId);
                 console.log(`🗑️ Удален устаревший оффер для комнаты ${roomId}`);
             }
@@ -329,13 +356,15 @@ function handleBroadcastPaused(ws, data) {
     room.isActive = false;
 
     // Уведомляем всех зрителей
-    room.clients.forEach(client => {
+    room.clients.forEach((client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-                type: 'broadcast-paused',
-                roomId: roomId,
-                message: data.message || 'Трансляция приостановлена'
-            }));
+            client.send(
+                JSON.stringify({
+                    type: 'broadcast-paused',
+                    roomId: roomId,
+                    message: data.message || 'Трансляция приостановлена',
+                })
+            );
         }
     });
 
@@ -353,13 +382,15 @@ function handleBroadcastResumed(ws, data) {
     room.lastActive = new Date();
 
     // Уведомляем всех зрителей
-    room.clients.forEach(client => {
+    room.clients.forEach((client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({
-                type: 'broadcast-resumed',
-                roomId: roomId,
-                message: data.message || 'Трансляция возобновлена'
-            }));
+            client.send(
+                JSON.stringify({
+                    type: 'broadcast-resumed',
+                    roomId: roomId,
+                    message: data.message || 'Трансляция возобновлена',
+                })
+            );
         }
     });
 
@@ -388,7 +419,7 @@ function forwardToRoom(senderWs, data) {
         pendingOffers.set(clientInfo.roomId, {
             sdp: data.sdp,
             from: data.from,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         });
     }
 
@@ -396,12 +427,12 @@ function forwardToRoom(senderWs, data) {
     let sentCount = 0;
     const receiverClients = [];
 
-    room.clients.forEach(client => {
+    room.clients.forEach((client) => {
         if (client !== senderWs) {
             receiverClients.push({
                 client: client,
                 type: clients.get(client)?.type || 'unknown',
-                ready: client.readyState === WebSocket.OPEN
+                ready: client.readyState === WebSocket.OPEN,
             });
 
             if (client.readyState === WebSocket.OPEN) {
@@ -412,11 +443,10 @@ function forwardToRoom(senderWs, data) {
     });
 
     console.log(`   ➡️ Отправлено ${sentCount}/${receiverClients.length} клиентам:`);
-    receiverClients.forEach(rc => {
+    receiverClients.forEach((rc) => {
         console.log(`     - ${rc.type} (${rc.ready ? 'готов' : 'не готов'})`);
     });
 }
-
 
 function broadcastRoomList() {
     const activeRooms = Array.from(rooms.entries())
@@ -425,19 +455,21 @@ function broadcastRoomList() {
             id: id,
             name: room.name,
             viewers: room.clients.size - 1,
-            sender: clients.get(room.sender)?.username || 'Неизвестно'
+            sender: clients.get(room.sender)?.username || 'Неизвестно',
         }));
 
     // Рассылаем обновленный список всем подключенным клиентам
-    wss.clients.forEach(client => {
+    wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             const clientInfo = clients.get(client);
             // Отправляем только если клиент не в активной комнате
             if (!clientInfo || clientInfo.type === 'receiver') {
-                client.send(JSON.stringify({
-                    type: 'room-list-update',
-                    rooms: activeRooms
-                }));
+                client.send(
+                    JSON.stringify({
+                        type: 'room-list-update',
+                        rooms: activeRooms,
+                    })
+                );
             }
         }
     });
@@ -448,12 +480,15 @@ function generateRoomId() {
 }
 
 // Очистка неактивных комнат каждые 5 минут
-setInterval(() => {
-    const now = Date.now();
-    for (const [roomId, room] of rooms.entries()) {
-        if (!room.isActive && now - room.createdAt > 30 * 60 * 1000) {
-            rooms.delete(roomId);
-            console.log(`🗑️ Удалена неактивная комната ${roomId}`);
+setInterval(
+    () => {
+        const now = Date.now();
+        for (const [roomId, room] of rooms.entries()) {
+            if (!room.isActive && now - room.createdAt > 30 * 60 * 1000) {
+                rooms.delete(roomId);
+                console.log(`🗑️ Удалена неактивная комната ${roomId}`);
+            }
         }
-    }
-}, 5 * 60 * 1000);
+    },
+    5 * 60 * 1000
+);

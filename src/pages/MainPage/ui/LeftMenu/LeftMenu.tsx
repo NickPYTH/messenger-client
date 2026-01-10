@@ -1,14 +1,13 @@
-import {Divider, Flex, Radio} from "antd";
-import React, {useState} from "react";
-import {CheckboxGroupProps} from "antd/es/checkbox";
-import {TopMenu} from "./TopMenu";
-import {ConversationsList} from "./Conversations/ConversationsList";
-import {ContactsList} from "./Contacts/ContactsList";
+import { Divider, Flex, Radio } from 'antd';
+import React, { useState } from 'react';
+import { CheckboxGroupProps } from 'antd/es/checkbox';
+import { TopMenu } from './TopMenu';
+import { ConversationsList } from './Conversations/ConversationsList';
+import { ContactsList } from './Contacts/ContactsList';
 
 export const LeftMenu = () => {
-
     // States
-    const [currentBottomMenuOption, setCurrentBottomMenuOption] = useState("chats");
+    const [currentBottomMenuOption, setCurrentBottomMenuOption] = useState('chats');
     // -----
 
     // Useful utils
@@ -19,14 +18,12 @@ export const LeftMenu = () => {
     // -----
 
     return (
-        <Flex
-            style={{width: '30vw', background: '#fff'}}
-            vertical>
-            <TopMenu/>
-            <Divider style={{margin: 0}}/>
-            <Flex vertical justify={'space-between'} style={{height: '100%'}}>
-                {currentBottomMenuOption == "chats" && <ConversationsList />}
-                {currentBottomMenuOption == "contacts" && <ContactsList />}
+        <Flex style={{ width: '30vw', background: '#fff' }} vertical>
+            <TopMenu />
+            <Divider style={{ margin: 0 }} />
+            <Flex vertical justify={'space-between'} style={{ height: '100%' }}>
+                {currentBottomMenuOption == 'chats' && <ConversationsList />}
+                {currentBottomMenuOption == 'contacts' && <ContactsList />}
                 <Radio.Group
                     block
                     value={currentBottomMenuOption}
@@ -35,9 +32,9 @@ export const LeftMenu = () => {
                     defaultValue="chats"
                     optionType="button"
                     buttonStyle="solid"
-                    style={{margin: 10}}
+                    style={{ margin: 10 }}
                 />
             </Flex>
         </Flex>
-    )
-}
+    );
+};

@@ -1,26 +1,34 @@
-import {Badge, Button, Empty, Flex, message as antdMessage, Typography} from "antd"
-import {RootStateType} from "../../../../store/store";
-import {Message} from "./Message";
-import {useSelector} from "react-redux";
-import {conversationsAPI} from "../../../../service/ConversationsService";
-import {messageAPI} from "../../../../service/MessageService";
-import React, {useEffect, useRef, useState} from "react";
-import {MessageModel} from "../../../../entities/MessageModel";
-import {useWebSocket} from "../../../../app/WebSocketProvider/ui/WebSocketProvider";
-import {DeleteOutlined, EyeOutlined, FileAddOutlined, PaperClipOutlined, SendOutlined} from "@ant-design/icons";
-import TextArea from "antd/es/input/TextArea";
-import {AttachmentModal} from "./AttachmentModal";
-import {FileAttachment} from "../../../../entities/AttachmentModel";
-import {ScreenShareModal} from "../../../../ScreenShareModal";
-import {TopMenu} from "./TopMenu/TopMenu";
+import { Badge, Button, Empty, Flex, message as antdMessage, Typography } from 'antd';
+import { RootStateType } from '../../../../store/store';
+import { Message } from './Message';
+import { useSelector } from 'react-redux';
+import { conversationsAPI } from '../../../../service/ConversationsService';
+import { messageAPI } from '../../../../service/MessageService';
+import React, { useEffect, useRef, useState } from 'react';
+import { MessageModel } from '../../../../entities/MessageModel';
+import { useWebSocket } from '../../../../app/WebSocketProvider/ui/WebSocketProvider';
+import {
+    DeleteOutlined,
+    EyeOutlined,
+    FileAddOutlined,
+    PaperClipOutlined,
+    SendOutlined,
+} from '@ant-design/icons';
+import TextArea from 'antd/es/input/TextArea';
+import { AttachmentModal } from './AttachmentModal';
+import { FileAttachment } from '../../../../entities/AttachmentModel';
+import { ScreenShareModal } from '../../../../ScreenShareModal';
+import { TopMenu } from './TopMenu/TopMenu';
 
-const {Text} = Typography;
+const { Text } = Typography;
 
 export const ChatWindow = () => {
     // Store
-    const selectedConversation = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
+    const selectedConversation = useSelector(
+        (state: RootStateType) => state.currentUser.selectedConversation
+    );
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
-    const {registerHandler} = useWebSocket();
+    const { registerHandler } = useWebSocket();
     // -----
 
     // Refs
@@ -28,7 +36,7 @@ export const ChatWindow = () => {
     // -----
 
     // States
-    const [text, setText] = useState<string>("");
+    const [text, setText] = useState<string>('');
     const [messages, setMessages] = useState<MessageModel[]>([]);
     const [visibleAttachmentModal, setVisibleAttachmentModal] = useState(false);
     const [visibleScreenShareModal, setVisibleScreenShareModal] = useState(false);
@@ -36,16 +44,14 @@ export const ChatWindow = () => {
     // -----
 
     // Web requests
-    const [createMessage, {
-        isSuccess: isCreateMessageSuccess,
-        isLoading: isCreateMessageLoading
-    }] = messageAPI.useCreateMutation();
-    const [createMessageWithFiles, {
-        isLoading: isCreateMessageWithFilesLoading
-    }] = messageAPI.useCreateWithFilesMutation();
-    const [getConversationMessages, {
-        data: messagesFromRequest,
-    }] = conversationsAPI.useGetMessagesMutation();
+    const [
+        createMessage,
+        { isSuccess: isCreateMessageSuccess, isLoading: isCreateMessageLoading },
+    ] = messageAPI.useCreateMutation();
+    const [createMessageWithFiles, { isLoading: isCreateMessageWithFilesLoading }] =
+        messageAPI.useCreateWithFilesMutation();
+    const [getConversationMessages, { data: messagesFromRequest }] =
+        conversationsAPI.useGetMessagesMutation();
 
     // -----
 
@@ -55,8 +61,7 @@ export const ChatWindow = () => {
 
     // Effects
     useEffect(() => {
-        if (selectedConversation)
-            getConversationMessages(selectedConversation.id);
+        if (selectedConversation) getConversationMessages(selectedConversation.id);
     }, [selectedConversation]);
 
     useEffect(() => {
@@ -67,16 +72,15 @@ export const ChatWindow = () => {
     }, [messagesFromRequest]);
 
     useEffect(() => {
-        if (isCreateMessageSuccess)
-            setText("");
+        if (isCreateMessageSuccess) setText('');
     }, [isCreateMessageSuccess]);
 
     useEffect(() => {
         // Регистрируем обработчик для новых сообщений чата
         const addMessageHandler = registerHandler('message_created', (data) => {
-            setMessages(prev => {
+            setMessages((prev) => {
                 // Проверяем, нет ли уже такого сообщения
-                const exists = prev.some(msg => msg.id === data.entity?.id);
+                const exists = prev.some((msg) => msg.id === data.entity?.id);
                 return exists ? prev : [...prev, data.entity];
             });
             setTimeout(() => handleScrollToBottom(), 100);
@@ -88,9 +92,9 @@ export const ChatWindow = () => {
     useEffect(() => {
         // Регистрируем обработчик для измененных сообщений чата
         const updateMessageHandler = registerHandler('message_updated', (data) => {
-            setMessages(prev => {
+            setMessages((prev) => {
                 let message = data.entity as MessageModel;
-                return prev.map((msg:MessageModel) => msg.id === message.id ? message : msg);
+                return prev.map((msg: MessageModel) => (msg.id === message.id ? message : msg));
             });
             setTimeout(() => handleScrollToBottom(), 100);
         });
@@ -101,7 +105,7 @@ export const ChatWindow = () => {
     useEffect(() => {
         // Регистрируем обработчик для сообщений чата
         const deleteMessageHandler = registerHandler('message_deleted', (data) => {
-            setMessages(prev => {
+            setMessages((prev) => {
                 return prev.filter((msg: MessageModel) => msg.id != data.entity?.id);
             });
             setTimeout(() => handleScrollToBottom(), 100);
@@ -130,13 +134,13 @@ export const ChatWindow = () => {
             if (attachments.length > 0) {
                 // Отправляем сообщение с файлами
                 const files = attachments
-                    .filter(att => att.originFileObj)
-                    .map(att => att.originFileObj as File);
+                    .filter((att) => att.originFileObj)
+                    .map((att) => att.originFileObj as File);
 
                 await createMessageWithFiles({
                     conversation: selectedConversation.id,
                     text: text.trim() || undefined,
-                    files: files.length > 0 ? files : undefined
+                    files: files.length > 0 ? files : undefined,
                 }).unwrap();
 
                 // Успешная отправка с файлами
@@ -145,15 +149,14 @@ export const ChatWindow = () => {
                 // Отправляем только текстовое сообщение
                 let message: MessageModel = {
                     conversation: selectedConversation.id,
-                    text: text.trim()
+                    text: text.trim(),
                 };
                 await createMessage(message).unwrap();
             }
 
             // Сбрасываем состояние
-            setText("");
+            setText('');
             setAttachments([]);
-
         } catch (error: any) {
             console.error('Ошибка отправки сообщения:', error);
 
@@ -183,7 +186,7 @@ export const ChatWindow = () => {
     };
 
     const handleRemoveAttachment = (uid: string) => {
-        setAttachments(prev => prev.filter(file => file.uid !== uid));
+        setAttachments((prev) => prev.filter((file) => file.uid !== uid));
     };
 
     const handlePreviewAttachment = (file: FileAttachment) => {
@@ -210,29 +213,31 @@ export const ChatWindow = () => {
         if (selectedConversation) {
             let message: MessageModel = {
                 conversation: selectedConversation.id,
-                text
+                text,
             };
             await createMessage(message).unwrap();
         }
-    }
+    };
     // -----
 
     return (
-        <Flex style={{
-            display: 'grid',
-            gridTemplateRows: 'auto 1fr auto',
-            height: '100vh',
-            padding: '1vw',
-            overflow: 'hidden',
-            width: '68vw',
-        }}>
-            {visibleScreenShareModal &&
+        <Flex
+            style={{
+                display: 'grid',
+                gridTemplateRows: 'auto 1fr auto',
+                height: '100vh',
+                padding: '1vw',
+                overflow: 'hidden',
+                width: '68vw',
+            }}
+        >
+            {visibleScreenShareModal && (
                 <ScreenShareModal
                     visible={visibleScreenShareModal}
                     setVisible={setVisibleScreenShareModal}
                     sendInviteLinkHandler={sendInviteLinkHandler}
                 />
-            }
+            )}
             {visibleAttachmentModal && (
                 <AttachmentModal
                     visible={visibleAttachmentModal}
@@ -242,13 +247,13 @@ export const ChatWindow = () => {
                 />
             )}
 
-            <TopMenu setVisibleScreenShareModal={setVisibleScreenShareModal}/>
+            <TopMenu setVisibleScreenShareModal={setVisibleScreenShareModal} />
 
             <Flex
                 vertical
                 style={{
                     overflowY: 'auto',
-                    padding: '0px 0'
+                    padding: '0px 0',
                 }}
             >
                 {messages.map((message, index) => (
@@ -258,8 +263,10 @@ export const ChatWindow = () => {
                         fromYou={message.sender?.id == currentUser?.id}
                     />
                 ))}
-                {messages.length == 0 && <Empty style={{marginTop: 50}} description={"Сообщений пока нет..."}/>}
-                <div ref={bottomRef} style={{height: '0px'}}/>
+                {messages.length == 0 && (
+                    <Empty style={{ marginTop: 50 }} description={'Сообщений пока нет...'} />
+                )}
+                <div ref={bottomRef} style={{ height: '0px' }} />
             </Flex>
 
             <Flex
@@ -267,7 +274,7 @@ export const ChatWindow = () => {
                 gap="small"
                 style={{
                     padding: '10px 0',
-                    borderTop: '1px solid #f0f0f0'
+                    borderTop: '1px solid #f0f0f0',
                 }}
             >
                 {attachments.length > 0 && (
@@ -278,10 +285,10 @@ export const ChatWindow = () => {
                             padding: '8px',
                             background: '#fafafa',
                             borderRadius: '8px',
-                            border: '1px solid #d9d9d9'
+                            border: '1px solid #d9d9d9',
                         }}
                     >
-                        <div style={{fontSize: '12px', color: '#666'}}>
+                        <div style={{ fontSize: '12px', color: '#666' }}>
                             Прикрепленные файлы ({attachments.length}):
                         </div>
                         <Flex vertical gap="4px">
@@ -294,21 +301,23 @@ export const ChatWindow = () => {
                                         padding: '4px 8px',
                                         background: '#fff',
                                         borderRadius: '4px',
-                                        border: '1px solid #e8e8e8'
+                                        border: '1px solid #e8e8e8',
                                     }}
                                 >
                                     <Flex align="center" gap="small">
-                                        <PaperClipOutlined style={{color: '#1890ff'}}/>
-                                        <span style={{
-                                            fontSize: '12px',
-                                            maxWidth: '200px',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap'
-                                        }}>
+                                        <PaperClipOutlined style={{ color: '#1890ff' }} />
+                                        <span
+                                            style={{
+                                                fontSize: '12px',
+                                                maxWidth: '200px',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
                                             {file.name}
                                         </span>
-                                        <span style={{fontSize: '11px', color: '#999'}}>
+                                        <span style={{ fontSize: '11px', color: '#999' }}>
                                             {formatFileSize(file.size)}
                                         </span>
                                     </Flex>
@@ -316,7 +325,7 @@ export const ChatWindow = () => {
                                         <Button
                                             type="text"
                                             size="small"
-                                            icon={<EyeOutlined/>}
+                                            icon={<EyeOutlined />}
                                             onClick={() => handlePreviewAttachment(file)}
                                             title="Предпросмотр"
                                         />
@@ -324,7 +333,7 @@ export const ChatWindow = () => {
                                             type="text"
                                             size="small"
                                             danger
-                                            icon={<DeleteOutlined/>}
+                                            icon={<DeleteOutlined />}
                                             onClick={() => handleRemoveAttachment(file.uid)}
                                             title="Удалить"
                                         />
@@ -341,30 +350,30 @@ export const ChatWindow = () => {
                         value={text}
                         onChange={changeTextHandler}
                         onPressEnter={handleKeyPress}
-                        style={{maxWidth: 600, width: '100%'}}
+                        style={{ maxWidth: 600, width: '100%' }}
                         placeholder="Введите сообщение..."
                         allowClear
-                        autoSize={{minRows: 1, maxRows: 4}}
+                        autoSize={{ minRows: 1, maxRows: 4 }}
                         disabled={isLoading}
                     />
                     <Badge count={attachments.length}>
                         <Button
-                            style={{height: 50, width: 50}}
+                            style={{ height: 50, width: 50 }}
                             onClick={() => setVisibleAttachmentModal(true)}
                             disabled={isLoading}
-                            icon={<FileAddOutlined/>}
+                            icon={<FileAddOutlined />}
                         />
                     </Badge>
                     <Button
-                        style={{height: 50, width: 50}}
+                        style={{ height: 50, width: 50 }}
                         type={'primary'}
                         onClick={createMessageHandler}
                         loading={isLoading}
                         disabled={(!text || text.trim() === '') && attachments.length === 0}
-                        icon={<SendOutlined/>}
+                        icon={<SendOutlined />}
                     />
                 </Flex>
             </Flex>
         </Flex>
-    )
-}
+    );
+};

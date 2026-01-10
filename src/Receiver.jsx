@@ -8,16 +8,16 @@ const WEBRTC_CONFIG = {
             urls: [
                 'turn:83.222.9.213:3478?transport=udp',
                 'turn:83.222.9.213:3478?transport=tcp',
-                'turns:83.222.9.213:5349?transport=tcp'
+                'turns:83.222.9.213:5349?transport=tcp',
             ],
             username: 'testuser',
-            credential: 'testpassword'
-        }
+            credential: 'testpassword',
+        },
     ],
     iceTransportPolicy: 'relay',
     iceCandidatePoolSize: 0,
     bundlePolicy: 'max-bundle',
-    rtcpMuxPolicy: 'require'
+    rtcpMuxPolicy: 'require',
 };
 
 const Receiver = () => {
@@ -39,7 +39,7 @@ const Receiver = () => {
 
     useEffect(() => {
         connectToSignalingServer();
-        console.log('lel', roomIdFromUrl)
+        console.log('lel', roomIdFromUrl);
         setTimeout(() => joinRoom(roomIdFromUrl), 100);
         return () => {
             cleanup();
@@ -61,7 +61,7 @@ const Receiver = () => {
             video.muted = true;
 
             // Пытаемся запустить
-            video.play().catch(error => {
+            video.play().catch((error) => {
                 console.log('Автозапуск видео:', error.message);
             });
         }
@@ -105,7 +105,7 @@ const Receiver = () => {
                             setConnectionStatus(`Трансляция приостановлена: ${data.message}`);
                             // Можно очистить поток или показать сообщение
                             if (remoteStream) {
-                                remoteStream.getTracks().forEach(track => track.stop());
+                                remoteStream.getTracks().forEach((track) => track.stop());
                                 setRemoteStream(null);
                             }
                             break;
@@ -122,11 +122,13 @@ const Receiver = () => {
                             break;
 
                         case 'room-joined':
-                            console.log(`✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`);
+                            console.log(
+                                `✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`
+                            );
                             setRoomInfo({
                                 id: data.roomId,
                                 name: data.roomName,
-                                sender: data.sender
+                                sender: data.sender,
                             });
                             setConnectionStatus(`Подключен к комнате "${data.roomName}"`);
                             setIsConnecting(false);
@@ -176,7 +178,9 @@ const Receiver = () => {
                 if (reconnectAttemptRef.current < 5) {
                     reconnectAttemptRef.current += 1;
                     const delay = Math.min(1000 * reconnectAttemptRef.current, 5000);
-                    console.log(`🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`);
+                    console.log(
+                        `🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`
+                    );
 
                     setTimeout(() => {
                         connectToSignalingServer();
@@ -188,7 +192,6 @@ const Receiver = () => {
                 console.error('❌ WebSocket ошибка:', error);
                 setConnectionStatus('Ошибка подключения');
             };
-
         } catch (error) {
             console.error('❌ Ошибка подключения к сигнальному серверу:', error);
             setConnectionStatus('Ошибка подключения');
@@ -197,10 +200,12 @@ const Receiver = () => {
 
     const requestRoomList = () => {
         if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-            signalingSocketRef.current.send(JSON.stringify({
-                type: 'list-rooms',
-                from: 'receiver'
-            }));
+            signalingSocketRef.current.send(
+                JSON.stringify({
+                    type: 'list-rooms',
+                    from: 'receiver',
+                })
+            );
         }
     };
 
@@ -211,12 +216,14 @@ const Receiver = () => {
         setConnectionStatus('Подключение к комнате...');
 
         if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-            signalingSocketRef.current.send(JSON.stringify({
-                type: 'join-room',
-                roomId: roomId,
-                username: 'Зритель', // Можно получать из профиля
-                from: 'receiver'
-            }));
+            signalingSocketRef.current.send(
+                JSON.stringify({
+                    type: 'join-room',
+                    roomId: roomId,
+                    username: 'Зритель', // Можно получать из профиля
+                    from: 'receiver',
+                })
+            );
             setSelectedRoom(roomId);
         }
     };
@@ -244,7 +251,7 @@ const Receiver = () => {
             console.log('🔄 Создаю ответ (answer)...');
             const answer = await pc.createAnswer({
                 offerToReceiveVideo: true,
-                offerToReceiveAudio: false
+                offerToReceiveAudio: false,
             });
 
             await pc.setLocalDescription(answer);
@@ -252,18 +259,19 @@ const Receiver = () => {
 
             // Отправляем ответ
             if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-                signalingSocketRef.current.send(JSON.stringify({
-                    type: 'answer',
-                    sdp: answer.sdp,
-                    from: 'receiver',
-                    roomId: roomId || roomInfo?.id,
-                    timestamp: Date.now()
-                }));
+                signalingSocketRef.current.send(
+                    JSON.stringify({
+                        type: 'answer',
+                        sdp: answer.sdp,
+                        from: 'receiver',
+                        roomId: roomId || roomInfo?.id,
+                        timestamp: Date.now(),
+                    })
+                );
                 console.log('📤 Ответ отправлен отправителю');
             } else {
                 console.error('❌ WebSocket не подключен');
             }
-
         } catch (error) {
             console.error('❌ Ошибка обработки оффера:', error);
             console.error('Детали ошибки:', error.message);
@@ -276,11 +284,13 @@ const Receiver = () => {
                 // Пробуем снова через секунду
                 setTimeout(() => {
                     if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-                        signalingSocketRef.current.send(JSON.stringify({
-                            type: 'request-offer',
-                            from: 'receiver',
-                            roomId: roomId || roomInfo?.id
-                        }));
+                        signalingSocketRef.current.send(
+                            JSON.stringify({
+                                type: 'request-offer',
+                                from: 'receiver',
+                                roomId: roomId || roomInfo?.id,
+                            })
+                        );
                     }
                 }, 1000);
             }
@@ -313,7 +323,7 @@ const Receiver = () => {
                         console.log('📷 Видео трек:', {
                             enabled: videoTrack.enabled,
                             readyState: videoTrack.readyState,
-                            settings: videoTrack.getSettings()
+                            settings: videoTrack.getSettings(),
                         });
                     }
 
@@ -327,7 +337,7 @@ const Receiver = () => {
                             remoteVideoRef.current.srcObject = stream;
                             remoteVideoRef.current.muted = true;
 
-                            remoteVideoRef.current.play().catch(error => {
+                            remoteVideoRef.current.play().catch((error) => {
                                 console.log('⚠️ Автозапуск заблокирован:', error.message);
                                 // Показываем сообщение пользователю
                                 setConnectionStatus('Кликните по видео для запуска');
@@ -343,12 +353,14 @@ const Receiver = () => {
                     console.log('🧊 Локальный ICE кандидат:', event.candidate.type);
 
                     if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-                        signalingSocketRef.current.send(JSON.stringify({
-                            type: 'ice-candidate',
-                            candidate: event.candidate,
-                            from: 'receiver',
-                            roomId: roomInfo?.id
-                        }));
+                        signalingSocketRef.current.send(
+                            JSON.stringify({
+                                type: 'ice-candidate',
+                                candidate: event.candidate,
+                                from: 'receiver',
+                                roomId: roomInfo?.id,
+                            })
+                        );
                     }
                 } else {
                     console.log('✅ Все ICE кандидаты собраны');
@@ -375,7 +387,6 @@ const Receiver = () => {
             };
 
             console.log('✅ PeerConnection инициализирован');
-
         } catch (error) {
             console.error('❌ Ошибка инициализации PeerConnection:', error);
             setConnectionStatus(`Ошибка: ${error.message}`);
@@ -384,18 +395,18 @@ const Receiver = () => {
 
     const handleIceCandidate = async (candidate) => {
         if (peerConnectionRef.current) {
-            await peerConnectionRef.current.addIceCandidate(
-                new RTCIceCandidate(candidate)
-            );
+            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
         }
     };
 
     const leaveRoom = () => {
         if (signalingSocketRef.current?.readyState === WebSocket.OPEN) {
-            signalingSocketRef.current.send(JSON.stringify({
-                type: 'leave-room',
-                from: 'receiver'
-            }));
+            signalingSocketRef.current.send(
+                JSON.stringify({
+                    type: 'leave-room',
+                    from: 'receiver',
+                })
+            );
         }
 
         cleanup();
@@ -413,7 +424,7 @@ const Receiver = () => {
         }
 
         if (remoteStream) {
-            remoteStream.getTracks().forEach(track => track.stop());
+            remoteStream.getTracks().forEach((track) => track.stop());
         }
     };
 
@@ -421,15 +432,21 @@ const Receiver = () => {
         <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
             {/* Информация о текущей комнате */}
             {roomInfo && (
-                <div style={{
-                    backgroundColor: '#e7f3ff',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    marginBottom: '20px'
-                }}>
+                <div
+                    style={{
+                        backgroundColor: '#e7f3ff',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        marginBottom: '20px',
+                    }}
+                >
                     <h3>{roomInfo.name}</h3>
-                    <p><strong>Ведущий:</strong> {roomInfo.sender}</p>
-                    <p><strong>Статус:</strong> {connectionStatus}</p>
+                    <p>
+                        <strong>Ведущий:</strong> {roomInfo.sender}
+                    </p>
+                    <p>
+                        <strong>Статус:</strong> {connectionStatus}
+                    </p>
 
                     <button
                         onClick={leaveRoom}
@@ -440,7 +457,7 @@ const Receiver = () => {
                             border: 'none',
                             borderRadius: '4px',
                             cursor: 'pointer',
-                            marginTop: '10px'
+                            marginTop: '10px',
                         }}
                     >
                         Покинуть комнату
@@ -449,14 +466,16 @@ const Receiver = () => {
             )}
 
             {/* Видеоплеер */}
-            <div style={{
-                position: 'relative',
-                backgroundColor: '#000',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                minHeight: '400px',
-                marginBottom: '20px'
-            }}>
+            <div
+                style={{
+                    position: 'relative',
+                    backgroundColor: '#000',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    minHeight: '400px',
+                    marginBottom: '20px',
+                }}
+            >
                 <video
                     ref={remoteVideoRef}
                     autoPlay
@@ -465,30 +484,34 @@ const Receiver = () => {
                     muted
                     style={{
                         width: '100%',
-                        display: remoteStream ? 'block' : 'none'
+                        display: remoteStream ? 'block' : 'none',
                     }}
                 />
 
                 {!remoteStream && roomInfo && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        textAlign: 'center'
-                    }}>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'white',
+                            textAlign: 'center',
+                        }}
+                    >
                         <div style={{ fontSize: '48px', marginBottom: '20px' }}>⏳</div>
                         <div>Ожидание начала трансляции...</div>
                     </div>
                 )}
 
                 {!roomInfo && !remoteStream && (
-                    <div style={{
-                        padding: '60px 20px',
-                        textAlign: 'center',
-                        color: '#666'
-                    }}>
+                    <div
+                        style={{
+                            padding: '60px 20px',
+                            textAlign: 'center',
+                            color: '#666',
+                        }}
+                    >
                         <div style={{ fontSize: '48px', marginBottom: '20px' }}>📺</div>
                         <div>Пум-пум-пум...</div>
                     </div>
