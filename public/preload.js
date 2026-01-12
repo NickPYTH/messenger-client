@@ -3,6 +3,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Безопасно экспортируем API в renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
+    takeScreenshot: () => ipcRenderer.invoke('take-screenshot'),
+    saveScreenshot: (base64Data) => ipcRenderer.invoke('save-screenshot', base64Data),
+    uploadScreenshot: (data) => ipcRenderer.invoke('upload-screenshot', data),
+
     // Метод для получения источников экрана
     getDesktopSources: () => ipcRenderer.invoke('get-desktop-sources'),
 

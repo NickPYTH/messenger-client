@@ -6,26 +6,14 @@ const {
     nativeImage,
     ipcMain,
     desktopCapturer,
+    dialog,
 } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // Важно объявить переменные глобально, чтобы сборщик мусора их не удалил
 let tray = null;
 let mainWindow = null;
-
-// 1. НОВОЕ: Конфигурация WebRTC (укажите ваш локальный Coturn)
-const WEBRTC_CONFIG = {
-    iceServers: [
-        {
-            urls: ['turn:localhost:3478'], // Адрес вашего локального Coturn
-            username: 'testuser', // Логин из конфига Coturn
-            credential: 'testpassword', // Пароль из конфига Coturn
-        },
-        {
-            urls: ['stun:stun.l.google.com:19302'], // Резервный STUN
-        },
-    ],
-};
 
 function createWindow() {
     const preloadPath = path.join(__dirname, 'preload.js');
@@ -95,16 +83,6 @@ function createTray() {
         },
         { type: 'separator' },
         {
-            label: 'Тест захвата экрана',
-            click: () => {
-                // 4. НОВОЕ: Быстрый тест захвата экрана из трея
-                if (mainWindow) {
-                    mainWindow.webContents.send('test-screen-share');
-                }
-            },
-        },
-        { type: 'separator' },
-        {
             label: 'Выйти',
             click: () => {
                 app.isQuitting = true;
@@ -129,7 +107,76 @@ function createTray() {
 
 // 5. НОВОЕ: IPC обработчики для WebRTC
 function setupIPCHandlers() {
-    // 1. Тестовый обработчик для проверки связи
+    // 0. Обработчик для создания скриншота
+    ipcMain.handle('take-screenshot', async (event) => {
+        try {
+            console.log('Создание скриншота...');
+
+            // Получаем размеры экрана через screen модуль
+            const { screen } = require('electron');
+            const primaryDisplay = screen.getPrimaryDisplay();
+            const { width, height } = primaryDisplay.size;
+            const scaleFactor = primaryDisplay.scaleFactor;
+
+            // Получаем список источников экрана
+            const sources = await desktopCapturer.getSources({
+                types: ['screen'],
+                thumbnailSize: {
+                    width: width * scaleFactor,
+                    height: height * scaleFactor,
+                },
+            });
+
+            if (sources.length > 0) {
+                // Берем первый экран (можно добавить выбор экрана если их несколько)
+                const screenshot = sources[0].thumbnail;
+
+                // Конвертируем в base64
+                const base64Data = screenshot.toPNG().toString('base64');
+
+                console.log('Скриншот создан успешно, размер:', width, 'x', height);
+                return base64Data;
+            } else {
+                console.error('Не найдены источники экрана');
+                return null;
+            }
+        } catch (error) {
+            console.error('Ошибка при создании скриншота:', error);
+            return null;
+        }
+    });
+
+    // 1. Обработчик для отправки скриншота (как файл или base64)
+    ipcMain.handle(
+        'upload-screenshot',
+        async (event, { base64Data, fileName = `screenshot-${Date.now()}.png` }) => {
+            try {
+                // Здесь можно добавить логику отправки на ваш сервер
+                // Например, конвертация в Blob и отправка через fetch
+                const buffer = Buffer.from(base64Data, 'base64');
+
+                // Возвращаем данные для отправки из React-компонента
+                return {
+                    success: true,
+                    data: {
+                        fileName,
+                        base64Data, // Для отправки как base64
+                        buffer: buffer.buffer, // Для отправки как ArrayBuffer
+                        size: buffer.length,
+                        mimeType: 'image/png',
+                    },
+                };
+            } catch (error) {
+                console.error('Ошибка при обработке скриншота:', error);
+                return {
+                    success: false,
+                    error: error.message,
+                };
+            }
+        }
+    );
+
+    // 2. Тестовый обработчик для проверки связи
     ipcMain.handle('test-connection', async (event) => {
         console.log('Получен тестовый запрос от React');
         return {
@@ -139,7 +186,7 @@ function setupIPCHandlers() {
         };
     });
 
-    // 2. Обработчик для получения источников экрана
+    // 3. Обработчик для получения источников экрана
     ipcMain.handle('get-desktop-sources', async (event, options) => {
         try {
             console.log('Запрос источников экрана...');
@@ -155,7 +202,7 @@ function setupIPCHandlers() {
         }
     });
 
-    // 3. Обработчик для выбора источника
+    // 4. Обработчик для выбора источника
     ipcMain.handle('select-source', (event, sourceId) => {
         console.log('Выбран источник:', sourceId);
         if (mainWindow) {
@@ -164,7 +211,7 @@ function setupIPCHandlers() {
         return true;
     });
 
-    // 4. Добавьте также обработку других событий если нужно
+    // 5. Добавьте также обработку других событий если нужно
     ipcMain.on('log-message', (event, message) => {
         console.log('Сообщение от React:', message);
     });

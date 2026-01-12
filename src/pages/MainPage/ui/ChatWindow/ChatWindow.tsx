@@ -1,11 +1,11 @@
-import { Badge, Button, Empty, Flex, message as antdMessage } from 'antd';
+import { Badge, Button, Empty, Flex, Popover } from 'antd';
 import { Message } from './Message';
 import { useSelector } from 'react-redux';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     DeleteOutlined,
+    DesktopOutlined,
     EyeOutlined,
-    FileAddOutlined,
     PaperClipOutlined,
     SendOutlined,
 } from '@ant-design/icons';
@@ -19,6 +19,7 @@ import { MessageModel } from 'entities/MessageModel';
 import { messageAPI } from 'service/MessageService';
 import { conversationsAPI } from 'service/ConversationsService';
 import { ScreenShareModal } from '../../../../ScreenShareModal';
+import { ScreenshotModal } from './ScreenshotModal';
 
 export const ChatWindow = () => {
     // Store
@@ -38,6 +39,7 @@ export const ChatWindow = () => {
     const [messages, setMessages] = useState<MessageModel[]>([]);
     const [visibleAttachmentModal, setVisibleAttachmentModal] = useState(false);
     const [visibleScreenShareModal, setVisibleScreenShareModal] = useState(false);
+    const [visibleScreenshotModal, setVisibleScreenshotModal] = useState(false);
     const [attachments, setAttachments] = useState<UploadFile[]>([]);
     // -----
 
@@ -119,12 +121,10 @@ export const ChatWindow = () => {
 
     const createMessageHandler = async () => {
         if ((!text || text.trim() === '') && attachments.length === 0) {
-            antdMessage.warning('Введите сообщение или прикрепите файл');
             return;
         }
 
         if (!selectedConversation) {
-            antdMessage.error('Выберите беседу');
             return;
         }
 
@@ -140,9 +140,6 @@ export const ChatWindow = () => {
                     text: text.trim() || undefined,
                     files: files.length > 0 ? files : undefined,
                 }).unwrap();
-
-                // Успешная отправка с файлами
-                antdMessage.success('Сообщение с файлами отправлено');
             } else {
                 // Отправляем только текстовое сообщение
                 const message: MessageModel = {
@@ -206,6 +203,46 @@ export const ChatWindow = () => {
             await createMessage(message).unwrap();
         }
     };
+
+    const handleSendScreenshot = async (base64Data: string, fileName: string) => {
+        try {
+            if (!selectedConversation) {
+                return;
+            }
+
+            // Конвертируем base64 в файл
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/png' });
+            const file = new File([blob], fileName, { type: 'image/png' });
+
+            // Добавляем файл в attachments
+            const newAttachment: UploadFile = {
+                uid: `screenshot-${Date.now()}`,
+                name: fileName,
+                status: 'done',
+                //originFileObj: file,
+                size: byteArray.length,
+                type: 'image/png',
+            };
+
+            setAttachments((prev) => [...prev, newAttachment]);
+
+            // Фокусируемся на поле ввода
+            setTimeout(() => {
+                const textarea = document.querySelector('textarea');
+                if (textarea) textarea.focus();
+            }, 100);
+        } catch (error) {
+            console.error('Ошибка при обработке скриншота:', error);
+        }
+    };
     // -----
 
     return (
@@ -234,6 +271,11 @@ export const ChatWindow = () => {
                     existingFiles={attachments as UploadFile[]}
                 />
             )}
+            <ScreenshotModal
+                visible={visibleScreenshotModal}
+                setVisible={setVisibleScreenshotModal}
+                onSendScreenshot={handleSendScreenshot}
+            />
 
             <TopMenu />
 
@@ -333,7 +375,24 @@ export const ChatWindow = () => {
                 )}
 
                 {/* Поле ввода и кнопки */}
-                <Flex justify={'center'} align={'center'} gap={'small'}>
+                <Flex justify={'center'} align={'center'} gap={'small'} style={{ marginBottom: 5 }}>
+                    <Badge count={attachments.length}>
+                        <Popover content={'Добавить файлы'}>
+                            <Button
+                                onClick={() => setVisibleAttachmentModal(true)}
+                                disabled={isLoading}
+                                icon={<PaperClipOutlined />}
+                            />
+                        </Popover>
+                    </Badge>
+                    <Popover content={'Отправить снимок экрана'}>
+                        <Button
+                            style={{ width: 39 }}
+                            onClick={() => setVisibleScreenshotModal(true)}
+                            disabled={isLoading}
+                            icon={<DesktopOutlined />}
+                        />
+                    </Popover>
                     <TextArea
                         value={text}
                         onChange={changeTextHandler}
@@ -344,16 +403,7 @@ export const ChatWindow = () => {
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         disabled={isLoading}
                     />
-                    <Badge count={attachments.length}>
-                        <Button
-                            style={{ height: 50, width: 50 }}
-                            onClick={() => setVisibleAttachmentModal(true)}
-                            disabled={isLoading}
-                            icon={<FileAddOutlined />}
-                        />
-                    </Badge>
                     <Button
-                        style={{ height: 50, width: 50 }}
                         type={'primary'}
                         onClick={createMessageHandler}
                         loading={isLoading}

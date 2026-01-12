@@ -39,6 +39,7 @@ export const ConfirmChatDeleteModal = (props: PropsType) => {
         <Modal
             title={`Вы точно хотите удалить чат?`}
             open={props.visible}
+            closable={false}
             onCancel={() => props.setVisible(false)}
             okText={'Да'}
             cancelText={'Нет'}
