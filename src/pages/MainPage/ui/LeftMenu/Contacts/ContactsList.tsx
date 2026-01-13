@@ -1,9 +1,12 @@
-import { Empty, Flex, Spin } from 'antd';
+import { Button, Empty, Flex, Popover, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ContactItem } from './ContactItem';
 import Search from 'antd/es/input/Search';
 import { UserModel } from 'entities/UserModel';
-import { userAPI } from 'service/UserService';
+import { favoritesAPI } from '../../../../../service/FavortiesService';
+import { FavoritesModel } from '../../../../../entities/FavoritesModel';
+import { userAPI } from '../../../../../service/UserService';
+import { DeleteOutlined } from '@ant-design/icons';
 
 export const ContactsList = () => {
     // States
@@ -12,17 +15,18 @@ export const ContactsList = () => {
     // -----
 
     // Web requests
-    const {
-        data: users,
-        isLoading: isUsersLoading,
-        refetch: refetchUsers,
-    } = userAPI.useGetAllQuery();
+    const [getFavorites, { data: favorites, isLoading: isFavoritesLoading }] =
+        favoritesAPI.useGetAllMutation();
+    const [getUsers, { data: users, isLoading: isUsersLoading }] = userAPI.useGetAllMutation();
     // -----
 
     // Effects
     useEffect(() => {
-        refetchUsers();
+        getFavorites();
     }, []);
+    useEffect(() => {
+        if (favorites) setUsersFiltered(favorites.map((f: FavoritesModel) => f.friend));
+    }, [favorites]);
     useEffect(() => {
         if (users) setUsersFiltered(users);
     }, [users]);
@@ -30,40 +34,47 @@ export const ContactsList = () => {
 
     // Handlers
     const searchHandler = () => {
-        if (searchValue.trim() && users) {
-            setUsersFiltered(
-                users.filter(
-                    (u: UserModel) =>
-                        u.username.toLowerCase().includes(searchValue.toLowerCase()) ||
-                        u.profile.first_name.toLowerCase().includes(searchValue.toLowerCase()) ||
-                        u.profile.last_name.toLowerCase().includes(searchValue.toLowerCase()) ||
-                        u.profile.second_name.toLowerCase().includes(searchValue.toLowerCase())
-                )
-            );
-        } else {
-            if (users) setUsersFiltered(users);
+        if (searchValue.trim().length > 1) {
+            getUsers(searchValue);
         }
+    };
+    const clearHandler = () => {
+        setSearchValue('');
+        getFavorites();
     };
     // -----
 
     return (
-        <Flex vertical gap={'small'}>
+        <Flex vertical gap={'small'} style={{ overflowY: 'scroll' }}>
             <Search
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                style={{ padding: 5 }}
+                style={{ padding: 5, position: 'absolute', width: 225, zIndex: 100 }}
                 placeholder="Поиск"
+                allowClear={true}
                 onSearch={searchHandler}
             />
-            {isUsersLoading ? (
-                <Spin style={{ marginTop: 50 }} />
-            ) : (
-                usersFiltered.map((contact: UserModel) => {
-                    return <ContactItem key={contact.id} contact={contact} />;
-                })
-            )}
+            <Popover content={'Сбросить поиск'}>
+                <Button
+                    onClick={clearHandler}
+                    icon={<DeleteOutlined />}
+                    style={{ position: 'absolute', width: 35, zIndex: 100, left: 225, top: 60 }}
+                />
+            </Popover>
+            <Flex vertical gap={'small'} style={{ marginTop: 35 }}>
+                {isFavoritesLoading || isUsersLoading ? (
+                    <Spin style={{ marginTop: 50 }} />
+                ) : (
+                    usersFiltered.map((contact: UserModel) => {
+                        return <ContactItem key={contact.id} contact={contact} />;
+                    })
+                )}
+            </Flex>
             {usersFiltered.length == 0 && (
-                <Empty description={'Пользователи не найдены'} style={{ marginTop: 50 }} />
+                <Empty
+                    description={'В избранном пусто, но вы можете найти людей в поиске'}
+                    style={{ marginTop: 50 }}
+                />
             )}
         </Flex>
     );

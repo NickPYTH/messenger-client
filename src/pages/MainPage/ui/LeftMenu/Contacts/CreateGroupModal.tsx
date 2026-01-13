@@ -22,7 +22,7 @@ export const CreateGroupModal = (props: ModalProps) => {
     // -----
 
     // Web requests
-    const { data: users, isLoading: isUsersLoading } = userAPI.useGetAllQuery();
+    const [getUsers, { data: users, isLoading: isUsersLoading }] = userAPI.useGetAllMutation();
     const [createConversation, { data: createdConversation }] =
         conversationsAPI.useCreateGroupMutation();
     // -----

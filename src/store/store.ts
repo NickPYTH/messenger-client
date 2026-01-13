@@ -3,6 +3,7 @@ import { conversationsAPI } from 'service/ConversationsService';
 import { userAPI } from 'service/UserService';
 import generalSlice, { CurrentUserModelStateType } from './slice/GeneralSlice';
 import { messageAPI } from '../service/MessageService';
+import { favoritesAPI } from '../service/FavortiesService';
 
 export type RootStateType = {
     currentUser: CurrentUserModelStateType;
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
     [userAPI.reducerPath]: userAPI.reducer,
     [conversationsAPI.reducerPath]: conversationsAPI.reducer,
     [messageAPI.reducerPath]: messageAPI.reducer,
+    [favoritesAPI.reducerPath]: favoritesAPI.reducer,
 });
 
 export const setupStore = () => {
@@ -22,7 +24,8 @@ export const setupStore = () => {
             getDefaultMiddleware()
                 .concat(userAPI.middleware)
                 .concat(conversationsAPI.middleware)
-                .concat(messageAPI.middleware),
+                .concat(messageAPI.middleware)
+                .concat(favoritesAPI.middleware),
     });
 };
 

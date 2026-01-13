@@ -7,7 +7,11 @@ import { RootStateType } from 'store/store';
 
 const { Text } = Typography;
 
-export const TopMenu = () => {
+type PropsType = {
+    setVisibleScreenShareModal: (visible: boolean) => void;
+};
+
+export const TopMenu = (props: PropsType) => {
     // Store
     const selectedConversation = useSelector(
         (state: RootStateType) => state.currentUser.selectedConversation
@@ -31,6 +35,9 @@ export const TopMenu = () => {
         if (e.key == 'deleteConversation') {
             setVisibleConfirmChatDeleteModal(true);
         }
+        if (e.key == 'screenShare') {
+            props.setVisibleScreenShareModal(true);
+        }
     };
     // -----
 
@@ -43,7 +50,7 @@ export const TopMenu = () => {
         },
         {
             label: 'Показ экрана',
-            key: '2',
+            key: 'screenShare',
             icon: <DesktopOutlined />,
         },
         {

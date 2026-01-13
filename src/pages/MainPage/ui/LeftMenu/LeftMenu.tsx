@@ -21,20 +21,20 @@ export const LeftMenu = () => {
         <Flex style={{ width: '30vw', background: '#fff' }} vertical>
             <TopMenu />
             <Divider style={{ margin: 0 }} />
-            <Flex vertical justify={'space-between'} style={{ height: '100%' }}>
+            <Flex vertical justify={'space-between'} style={{ height: window.innerHeight - 105 }}>
                 {currentBottomMenuOption == 'chats' && <ConversationsList />}
                 {currentBottomMenuOption == 'contacts' && <ContactsList />}
-                <Radio.Group
-                    block
-                    value={currentBottomMenuOption}
-                    onChange={(e) => setCurrentBottomMenuOption(e.target.value)}
-                    options={bottomMenuOptions}
-                    defaultValue="chats"
-                    optionType="button"
-                    buttonStyle="solid"
-                    style={{ margin: 10 }}
-                />
             </Flex>
+            <Radio.Group
+                block
+                value={currentBottomMenuOption}
+                onChange={(e) => setCurrentBottomMenuOption(e.target.value)}
+                options={bottomMenuOptions}
+                defaultValue="chats"
+                optionType="button"
+                buttonStyle="solid"
+                style={{ margin: 10 }}
+            />
         </Flex>
     );
 };

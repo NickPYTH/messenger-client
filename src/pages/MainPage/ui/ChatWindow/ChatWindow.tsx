@@ -277,7 +277,7 @@ export const ChatWindow = () => {
                 onSendScreenshot={handleSendScreenshot}
             />
 
-            <TopMenu />
+            <TopMenu setVisibleScreenShareModal={setVisibleScreenShareModal} />
 
             <Flex
                 vertical

@@ -13,9 +13,12 @@ export const userAPI = createApi({
             query: () => 'me',
             providesTags: ['user'],
         }),
-        getAll: build.query<UserModel[], void>({
-            query: () => 'users',
-            providesTags: ['user'],
+        getAll: build.mutation<UserModel[], string>({
+            query: (search) => ({
+                url: `/users?search=${search}`,
+                method: 'GET',
+            }),
+            invalidatesTags: ['user'],
         }),
     }),
 });

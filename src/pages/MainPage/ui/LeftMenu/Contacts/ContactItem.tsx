@@ -6,18 +6,13 @@ import { UserModel } from 'entities/UserModel';
 import { RootStateType } from 'store/store';
 import { conversationsAPI } from 'service/ConversationsService';
 import { setSelectedConversation } from 'store/slice/GeneralSlice';
+import { favoritesAPI } from '../../../../../service/FavortiesService';
+import { FavoritesModel } from '../../../../../entities/FavoritesModel';
 
 const { Text } = Typography;
 
 type PropsType = {
     contact: UserModel;
-};
-
-type ErrorCreateConversationType = {
-    status: number;
-    data: {
-        existing_conversation_id: string[];
-    };
 };
 
 export const ContactItem = (props: PropsType) => {
@@ -29,6 +24,10 @@ export const ContactItem = (props: PropsType) => {
     // Web requests
     const [createConversation, { data: createdConversation, error: errorCreateConversation }] =
         conversationsAPI.useCreateMutation();
+    const [
+        createFavorite,
+        { isSuccess: isCreateFavoriteSuccess, isLoading: isCreateFavoriteLoading },
+    ] = favoritesAPI.useCreateMutation();
     // -----
 
     // Effects
@@ -39,8 +38,6 @@ export const ContactItem = (props: PropsType) => {
     }, [createdConversation]);
     useEffect(() => {
         if (errorCreateConversation) {
-            const error: ErrorCreateConversationType =
-                errorCreateConversation as unknown as ErrorCreateConversationType;
             //dispatch(setSelectedConversation(parseInt(error.data.existing_conversation_id[0])));
         }
     }, [errorCreateConversation]);
@@ -50,6 +47,15 @@ export const ContactItem = (props: PropsType) => {
     const createConversationHandler = () => {
         const member_ids = [props.contact.id];
         createConversation({ member_ids });
+    };
+    const createFavoriteHandler = () => {
+        if (currentUser) {
+            const favorite: FavoritesModel = {
+                user: currentUser,
+                friend: props.contact,
+            };
+            createFavorite(favorite);
+        }
     };
     // -----
 
@@ -75,7 +81,7 @@ export const ContactItem = (props: PropsType) => {
                 <Popover content={'Добавить в избранное'}>
                     <Button
                         type={'link'}
-                        onClick={createConversationHandler}
+                        onClick={createFavoriteHandler}
                         icon={<HeartOutlined />}
                     />
                 </Popover>
