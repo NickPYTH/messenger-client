@@ -5,9 +5,9 @@ const WEBRTC_CONFIG = {
     iceServers: [
         {
             urls: [
-                'turn:83.222.9.213:3478?transport=udp',
-                'turn:83.222.9.213:3478?transport=tcp',
-                'turns:83.222.9.213:5349?transport=tcp',
+                'turn:test-vapp-03.sgp.ru:3478?transport=udp',
+                'turn:test-vapp-03.sgp.ru:3478?transport=tcp',
+                'turns:test-vapp-03.sgp.ru:5349?transport=tcp',
             ],
             username: 'testuser',
             credential: 'testpassword',
@@ -58,7 +58,9 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
     }, []);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8080');
+        //const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket('ws://test-vapp-03.sgp.ru:8082');
+
         wsRef.current = socket;
 
         socket.onopen = () => {
@@ -99,9 +101,7 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
 
                     case 'ice-candidate':
                         if (peerConnectionRef.current) {
-                            await peerConnectionRef.current.addIceCandidate(
-                                new RTCIceCandidate(data.candidate)
-                            );
+                            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
                             console.log('✅ ICE кандидат добавлен');
                         }
                         break;

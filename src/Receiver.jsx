@@ -6,9 +6,9 @@ const WEBRTC_CONFIG = {
     iceServers: [
         {
             urls: [
-                'turn:83.222.9.213:3478?transport=udp',
-                'turn:83.222.9.213:3478?transport=tcp',
-                'turns:83.222.9.213:5349?transport=tcp',
+                'turn:test-vapp-03.sgp.ru:3478?transport=udp',
+                'turn:test-vapp-03.sgp.ru:3478?transport=tcp',
+                'turns:test-vapp-03.sgp.ru:5349?transport=tcp',
             ],
             username: 'testuser',
             credential: 'testpassword',
@@ -80,7 +80,8 @@ const Receiver = () => {
                 return;
             }
 
-            const wsUrl = 'ws://localhost:8080';
+            //const wsUrl = 'ws://localhost:8080';
+            const wsUrl = 'wss://sco1-vapp-09.sgp.ru/messenger/signal/ws';
             console.log(`🔗 Подключаюсь к сигнальному серверу: ${wsUrl}`);
 
             const ws = new WebSocket(wsUrl);
@@ -122,9 +123,7 @@ const Receiver = () => {
                             break;
 
                         case 'room-joined':
-                            console.log(
-                                `✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`
-                            );
+                            console.log(`✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`);
                             setRoomInfo({
                                 id: data.roomId,
                                 name: data.roomName,
@@ -178,9 +177,7 @@ const Receiver = () => {
                 if (reconnectAttemptRef.current < 5) {
                     reconnectAttemptRef.current += 1;
                     const delay = Math.min(1000 * reconnectAttemptRef.current, 5000);
-                    console.log(
-                        `🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`
-                    );
+                    console.log(`🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`);
 
                     setTimeout(() => {
                         connectToSignalingServer();
@@ -243,9 +240,7 @@ const Receiver = () => {
         try {
             console.log('🔄 Устанавливаю удаленное описание (offer)...');
 
-            await pc.setRemoteDescription(
-                new RTCSessionDescription({ type: 'offer', sdp: sdpOffer })
-            );
+            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: sdpOffer }));
             console.log('✅ Удаленное описание установлено');
 
             console.log('🔄 Создаю ответ (answer)...');

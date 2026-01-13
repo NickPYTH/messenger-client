@@ -10,7 +10,7 @@ export enum AppRoutes {
 
 export const RoutePath: Record<AppRoutes, string> = {
     [AppRoutes.MAIN_PAGE]: '/messenger/',
-    [AppRoutes.RECEIVER_PAGE]: '/receiver/',
+    [AppRoutes.RECEIVER_PAGE]: '/messenger/receiver/',
 };
 
 export const routeConfig: Record<AppRoutes, RouteProps> = {
