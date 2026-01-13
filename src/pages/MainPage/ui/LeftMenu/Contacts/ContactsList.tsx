@@ -66,7 +66,18 @@ export const ContactsList = () => {
                     <Spin style={{ marginTop: 50 }} />
                 ) : (
                     usersFiltered.map((contact: UserModel) => {
-                        return <ContactItem key={contact.id} contact={contact} />;
+                        return (
+                            <ContactItem
+                                key={contact.id}
+                                favoriteId={
+                                    favorites?.find(
+                                        (f: FavoritesModel) => f.friend.id == contact.id
+                                    )?.id
+                                }
+                                setUsersFiltered={setUsersFiltered}
+                                contact={contact}
+                            />
+                        );
                     })
                 )}
             </Flex>

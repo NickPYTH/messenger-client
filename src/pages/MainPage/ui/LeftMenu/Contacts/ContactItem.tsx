@@ -1,6 +1,6 @@
 import { Flex, Avatar, Typography, Button, Popover } from 'antd';
-import { MessageOutlined, HeartOutlined } from '@ant-design/icons';
-import { useEffect } from 'react';
+import { MessageOutlined, HeartOutlined, HeartFilled } from '@ant-design/icons';
+import { Dispatch, SetStateAction, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { UserModel } from 'entities/UserModel';
 import { RootStateType } from 'store/store';
@@ -13,6 +13,8 @@ const { Text } = Typography;
 
 type PropsType = {
     contact: UserModel;
+    favoriteId: number | undefined;
+    setUsersFiltered: Dispatch<SetStateAction<UserModel[]>>;
 };
 
 export const ContactItem = (props: PropsType) => {
@@ -24,10 +26,8 @@ export const ContactItem = (props: PropsType) => {
     // Web requests
     const [createConversation, { data: createdConversation, error: errorCreateConversation }] =
         conversationsAPI.useCreateMutation();
-    const [
-        createFavorite,
-        { isSuccess: isCreateFavoriteSuccess, isLoading: isCreateFavoriteLoading },
-    ] = favoritesAPI.useCreateMutation();
+    const [createFavorite] = favoritesAPI.useCreateMutation();
+    const [deleteFavorite, { isSuccess: isDeleteFavoriteSuccess }] = favoritesAPI.useDeleteMutation();
     // -----
 
     // Effects
@@ -41,6 +41,10 @@ export const ContactItem = (props: PropsType) => {
             //dispatch(setSelectedConversation(parseInt(error.data.existing_conversation_id[0])));
         }
     }, [errorCreateConversation]);
+    useEffect(() => {
+        if (isDeleteFavoriteSuccess)
+            props.setUsersFiltered((prev: UserModel[]) => prev.filter((u: UserModel) => u.id != props.contact.id));
+    }, [isDeleteFavoriteSuccess]);
     // -----
 
     // Handlers
@@ -56,6 +60,9 @@ export const ContactItem = (props: PropsType) => {
             };
             createFavorite(favorite);
         }
+    };
+    const deleteFavoriteHandler = () => {
+        if (props.favoriteId) deleteFavorite(props.favoriteId);
     };
     // -----
 
@@ -78,19 +85,17 @@ export const ContactItem = (props: PropsType) => {
                 </Flex>
             </Flex>
             <Flex>
-                <Popover content={'Добавить в избранное'}>
-                    <Button
-                        type={'link'}
-                        onClick={createFavoriteHandler}
-                        icon={<HeartOutlined />}
-                    />
-                </Popover>
+                {!props.favoriteId ? (
+                    <Popover content={'Добавить в избранное'}>
+                        <Button type={'link'} onClick={createFavoriteHandler} icon={<HeartOutlined />} />
+                    </Popover>
+                ) : (
+                    <Popover content={'Удалить из избранного'}>
+                        <Button type={'link'} onClick={deleteFavoriteHandler} icon={<HeartFilled />} />
+                    </Popover>
+                )}
                 {props.contact.id != currentUser?.id && (
-                    <Button
-                        type={'link'}
-                        onClick={createConversationHandler}
-                        icon={<MessageOutlined />}
-                    />
+                    <Button type={'link'} onClick={createConversationHandler} icon={<MessageOutlined />} />
                 )}
             </Flex>
         </Flex>
