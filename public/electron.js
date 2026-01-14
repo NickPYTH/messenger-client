@@ -23,8 +23,8 @@ function createWindow() {
         },
     });
 
-    //mainWindow.loadURL('http://localhost:3000/messenger/');
-    mainWindow.loadURL('https://sco1-vapp-09.sgp.ru/messenger/');
+    mainWindow.loadURL('http://localhost:3000/messenger/');
+    //mainWindow.loadURL('https://sco1-vapp-09.sgp.ru/messenger/');
 
     Menu.setApplicationMenu(null);
 
