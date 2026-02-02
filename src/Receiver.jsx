@@ -80,7 +80,6 @@ const Receiver = () => {
                 return;
             }
 
-            //const wsUrl = 'ws://localhost:8080';
             const wsUrl = 'wss://sco1-vapp-09.sgp.ru/messenger/signal/ws';
             console.log(`🔗 Подключаюсь к сигнальному серверу: ${wsUrl}`);
 

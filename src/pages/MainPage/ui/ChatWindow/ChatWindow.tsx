@@ -134,7 +134,7 @@ export const ChatWindow = () => {
                 const files = attachments
                     .filter((att) => att.originFileObj)
                     .map((att) => att.originFileObj as File);
-
+                console.log(files, attachments)
                 await createMessageWithFiles({
                     conversation: selectedConversation.id,
                     text: text.trim() || undefined,
@@ -223,11 +223,11 @@ export const ChatWindow = () => {
             const file = new File([blob], fileName, { type: 'image/png' });
 
             // Добавляем файл в attachments
-            const newAttachment: UploadFile = {
+            const newAttachment: any = {
                 uid: `screenshot-${Date.now()}`,
                 name: fileName,
                 status: 'done',
-                //originFileObj: file,
+                originFileObj: file,
                 size: byteArray.length,
                 type: 'image/png',
             };

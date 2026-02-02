@@ -58,7 +58,6 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
     }, []);
 
     useEffect(() => {
-        //const socket = new WebSocket('ws://localhost:8080');
         const socket = new WebSocket('ws://test-vapp-03.sgp.ru:8082');
 
         wsRef.current = socket;
