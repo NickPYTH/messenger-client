@@ -2,13 +2,7 @@ import { Badge, Button, Empty, Flex, Popover } from 'antd';
 import { Message } from './Message';
 import { useSelector } from 'react-redux';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    DeleteOutlined,
-    DesktopOutlined,
-    EyeOutlined,
-    PaperClipOutlined,
-    SendOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, DesktopOutlined, EyeOutlined, PaperClipOutlined, SendOutlined } from '@ant-design/icons';
 import TextArea from 'antd/es/input/TextArea';
 import { AttachmentModal } from './AttachmentModal';
 import { TopMenu } from './TopMenu/TopMenu';
@@ -23,9 +17,7 @@ import { ScreenshotModal } from './ScreenshotModal';
 
 export const ChatWindow = () => {
     // Store
-    const selectedConversation = useSelector(
-        (state: RootStateType) => state.currentUser.selectedConversation
-    );
+    const selectedConversation = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
     const { registerHandler } = useWebSocket();
     // -----
@@ -44,14 +36,11 @@ export const ChatWindow = () => {
     // -----
 
     // Web requests
-    const [
-        createMessage,
-        { isSuccess: isCreateMessageSuccess, isLoading: isCreateMessageLoading },
-    ] = messageAPI.useCreateMutation();
+    const [createMessage, { isSuccess: isCreateMessageSuccess, isLoading: isCreateMessageLoading }] =
+        messageAPI.useCreateMutation();
     const [createMessageWithFiles, { isLoading: isCreateMessageWithFilesLoading }] =
         messageAPI.useCreateWithFilesMutation();
-    const [getConversationMessages, { data: messagesFromRequest }] =
-        conversationsAPI.useGetMessagesMutation();
+    const [getConversationMessages, { data: messagesFromRequest }] = conversationsAPI.useGetMessagesMutation();
 
     // -----
 
@@ -135,6 +124,7 @@ export const ChatWindow = () => {
                     .filter((att) => att.originFileObj)
                     .map((att) => att.originFileObj as File);
                 console.log(files, attachments)
+
                 await createMessageWithFiles({
                     conversation: selectedConversation.id,
                     text: text.trim() || undefined,
@@ -287,15 +277,9 @@ export const ChatWindow = () => {
                 }}
             >
                 {messages.map((message, index) => (
-                    <Message
-                        key={index}
-                        data={message}
-                        fromYou={message.sender?.id == currentUser?.id}
-                    />
+                    <Message key={index} data={message} fromYou={message.sender?.id == currentUser?.id} />
                 ))}
-                {messages.length == 0 && (
-                    <Empty style={{ marginTop: 50 }} description={'Сообщений пока нет...'} />
-                )}
+                {messages.length == 0 && <Empty style={{ marginTop: 50 }} description={'Сообщений пока нет...'} />}
                 <div ref={bottomRef} style={{ height: '0px' }} />
             </Flex>
 

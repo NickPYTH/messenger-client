@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // Безопасно экспортируем API в renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
+    playNotificationSound: () => ipcRenderer.invoke('play-notification-sound'),
+    showApp: () => ipcRenderer.invoke('show-app'),
     takeScreenshot: () => ipcRenderer.invoke('take-screenshot'),
     saveScreenshot: (base64Data) => ipcRenderer.invoke('save-screenshot', base64Data),
     uploadScreenshot: (data) => ipcRenderer.invoke('upload-screenshot', data),
@@ -14,8 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     selectSource: (sourceId) => ipcRenderer.invoke('select-source', sourceId),
 
     // Событие при выборе источника
-    onSourceSelected: (callback) =>
-        ipcRenderer.on('source-selected', (event, sourceId) => callback(sourceId)),
+    onSourceSelected: (callback) => ipcRenderer.on('source-selected', (event, sourceId) => callback(sourceId)),
 
     // Тестовый метод для проверки связи
     testConnection: () => ipcRenderer.invoke('test-connection'),
