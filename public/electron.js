@@ -1,4 +1,13 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, desktopCapturer, dialog } = require('electron');
+const {
+    app,
+    BrowserWindow,
+    Tray,
+    Menu,
+    nativeImage,
+    ipcMain,
+    desktopCapturer,
+    dialog,
+} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { Notification } = require('electron');
@@ -30,7 +39,7 @@ function createWindow() {
     Menu.setApplicationMenu(null);
 
     // 3. НОВОЕ: Открываем DevTools для отладки
-    //mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 
     // Перехватываем событие закрытия окна
     mainWindow.on('close', (event) => {
@@ -141,31 +150,34 @@ function setupIPCHandlers() {
     });
 
     // 1. Обработчик для отправки скриншота (как файл или base64)
-    ipcMain.handle('upload-screenshot', async (event, { base64Data, fileName = `screenshot-${Date.now()}.png` }) => {
-        try {
-            // Здесь можно добавить логику отправки на ваш сервер
-            // Например, конвертация в Blob и отправка через fetch
-            const buffer = Buffer.from(base64Data, 'base64');
+    ipcMain.handle(
+        'upload-screenshot',
+        async (event, { base64Data, fileName = `screenshot-${Date.now()}.png` }) => {
+            try {
+                // Здесь можно добавить логику отправки на ваш сервер
+                // Например, конвертация в Blob и отправка через fetch
+                const buffer = Buffer.from(base64Data, 'base64');
 
-            // Возвращаем данные для отправки из React-компонента
-            return {
-                success: true,
-                data: {
-                    fileName,
-                    base64Data, // Для отправки как base64
-                    buffer: buffer.buffer, // Для отправки как ArrayBuffer
-                    size: buffer.length,
-                    mimeType: 'image/png',
-                },
-            };
-        } catch (error) {
-            console.error('Ошибка при обработке скриншота:', error);
-            return {
-                success: false,
-                error: error.message,
-            };
+                // Возвращаем данные для отправки из React-компонента
+                return {
+                    success: true,
+                    data: {
+                        fileName,
+                        base64Data, // Для отправки как base64
+                        buffer: buffer.buffer, // Для отправки как ArrayBuffer
+                        size: buffer.length,
+                        mimeType: 'image/png',
+                    },
+                };
+            } catch (error) {
+                console.error('Ошибка при обработке скриншота:', error);
+                return {
+                    success: false,
+                    error: error.message,
+                };
+            }
         }
-    });
+    );
 
     // 2. Тестовый обработчик для проверки связи
     ipcMain.handle('test-connection', async (event) => {
@@ -203,11 +215,12 @@ function setupIPCHandlers() {
     });
 
     // 6. Активация приложения ipcMain.on
-    ipcMain.handle('show-app', (event, message) => {
+    ipcMain.on('show-app', () => {
         if (mainWindow) {
-            console.log(mainWindow);
+            if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.show();
-            console.log('show');
+            mainWindow.focus();
+            console.log('[IPC] Получена команда show-app');
         }
     });
 
