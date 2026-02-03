@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, desktopCapturer, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { Notification } = require('electron');
 
 // Важно объявить переменные глобально, чтобы сборщик мусора их не удалил
 let tray = null;
@@ -62,7 +63,7 @@ function createTray() {
     trayImage = trayImage.resize({ width: 16, height: 16 });
 
     tray = new Tray(trayImage);
-    tray.setToolTip('Корпоративный мессенджер'); // Текст при наведении
+    tray.setToolTip('Чатики'); // Текст при наведении
 
     // Создаем контекстное меню для иконки в трея
     const contextMenu = Menu.buildFromTemplate([
@@ -201,9 +202,56 @@ function setupIPCHandlers() {
         return true;
     });
 
-    // 5. Добавьте также обработку других событий если нужно
-    ipcMain.on('log-message', (event, message) => {
-        console.log('Сообщение от React:', message);
+    // 6. Активация приложения ipcMain.on
+    ipcMain.handle('show-app', (event, message) => {
+        if (mainWindow) {
+            console.log(mainWindow);
+            mainWindow.show();
+            console.log('show');
+        }
+    });
+
+    // Аудио сообщения
+    ipcMain.handle('play-notification-sound', async (event, soundType) => {
+        try {
+            const soundMap = {
+                message: path.join(__dirname, 'sounds', 'message.mp3'),
+                call: path.join(__dirname, 'sounds', 'message.mp3'),
+                alert: path.join(__dirname, 'sounds', 'message.mp3'),
+            };
+            console.log(soundMap);
+
+            // Проверяем существование файла
+            if (fs.existsSync(soundMap[soundType])) {
+                // Создаем уведомление со звуком
+                // new Notification({
+                //     title: 'Чатики',
+                //     body: `Новое уведомление (${soundType})`,
+                //     silent: false, // Включаем звук
+                //     sound: soundMap[soundType], // Путь к звуковому файлу
+                //     icon: path.join('', 'tray-icon.png'),
+                // }).show();
+                new Notification({
+                    title: 'Чатики',
+                    body: 'Новое сообщение',
+                    silent: false, // Включит стандартный системный звук
+                }).show();
+
+                return { success: true };
+            } else {
+                // Используем системный звук как fallback
+                new Notification({
+                    title: 'Чатики',
+                    body: 'Новое сообщение',
+                    silent: false, // Включит стандартный системный звук
+                }).show();
+
+                return { success: true, usedDefault: true };
+            }
+        } catch (error) {
+            console.error('Ошибка воспроизведения звука:', error);
+            return { success: false, error: error.message };
+        }
     });
 }
 

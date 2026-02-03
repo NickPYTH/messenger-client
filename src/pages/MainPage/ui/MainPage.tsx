@@ -7,15 +7,11 @@ import { userAPI } from '../../../service/UserService';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentUser } from '../../../store/slice/GeneralSlice';
 import { RootStateType } from '../../../store/store';
-import { useWebSocket } from '../../../app/WebSocketProvider/ui/WebSocketProvider';
 
 const MainPage = () => {
     const dispatch = useDispatch();
-    const selectedConversationId = useSelector(
-        (state: RootStateType) => state.currentUser.selectedConversation
-    );
+    const selectedConversationId = useSelector((state: RootStateType) => state.currentUser.selectedConversation);
 
-    const { isConnected, registerHandler, sendMessage } = useWebSocket();
     const { data: currentUserData } = userAPI.useGetCurrentQuery();
 
     useEffect(() => {
