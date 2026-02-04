@@ -122,7 +122,9 @@ const Receiver = () => {
                             break;
 
                         case 'room-joined':
-                            console.log(`✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`);
+                            console.log(
+                                `✅ Присоединились к комнате: ${data.roomName} (${data.roomId})`
+                            );
                             setRoomInfo({
                                 id: data.roomId,
                                 name: data.roomName,
@@ -176,7 +178,9 @@ const Receiver = () => {
                 if (reconnectAttemptRef.current < 5) {
                     reconnectAttemptRef.current += 1;
                     const delay = Math.min(1000 * reconnectAttemptRef.current, 5000);
-                    console.log(`🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`);
+                    console.log(
+                        `🔄 Переподключение через ${delay}мс (попытка ${reconnectAttemptRef.current})`
+                    );
 
                     setTimeout(() => {
                         connectToSignalingServer();
@@ -239,7 +243,9 @@ const Receiver = () => {
         try {
             console.log('🔄 Устанавливаю удаленное описание (offer)...');
 
-            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: sdpOffer }));
+            await pc.setRemoteDescription(
+                new RTCSessionDescription({ type: 'offer', sdp: sdpOffer })
+            );
             console.log('✅ Удаленное описание установлено');
 
             console.log('🔄 Создаю ответ (answer)...');

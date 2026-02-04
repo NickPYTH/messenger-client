@@ -207,7 +207,7 @@ export const Message = (props: PropsType) => {
                     {text.trim()}
                 </SyntaxHighlighter>
             );
-        } else if (/https?:\/\/[^/]+\/receiver\?room=/.test(text))
+        } else if (/https?:\/\/[^/]+\/messenger\/\?room=/.test(text))
             return (
                 <Flex vertical gap={'small'}>
                     <Text>Моя транляция</Text>

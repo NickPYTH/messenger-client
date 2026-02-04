@@ -58,7 +58,8 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
     }, []);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://test-vapp-03.sgp.ru:8082');
+        //const socket = new WebSocket('ws://test-vapp-03.sgp.ru:8082');
+        const socket = new WebSocket('ws://localhost:8080');
 
         wsRef.current = socket;
 
@@ -100,7 +101,9 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
 
                     case 'ice-candidate':
                         if (peerConnectionRef.current) {
-                            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+                            await peerConnectionRef.current.addIceCandidate(
+                                new RTCIceCandidate(data.candidate)
+                            );
                             console.log('✅ ICE кандидат добавлен');
                         }
                         break;
@@ -392,7 +395,7 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
 
     const shareLinkHandler = () => {
         if (roomId) {
-            sendInviteLinkHandler(`${window.location.origin}/receiver?room=${roomId}`);
+            sendInviteLinkHandler(`${window.location.origin}/messenger/?room=${roomId}`);
         }
     };
 
@@ -605,7 +608,7 @@ export const ScreenShareModal = ({ visible, setVisible, sendInviteLinkHandler })
                                 wordBreak: 'break-all',
                             }}
                         >
-                            {window.location.origin}/receiver?room={roomId}
+                            {window.location.origin}/messenger/?room={roomId}
                         </code>
                     </div>
                 )}
