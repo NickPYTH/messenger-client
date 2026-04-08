@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import { ReduxProvider } from './app/ReduxProvider';
-import { Router } from './component/Router';
-import { WebSocketProvider } from './app/WebSocketProvider';
+import './app/styles/index.css';
+import { ReduxProvider } from './app/providers/ReduxProvider';
+import { Router } from './app/routes/Router';
+import { WebSocketProvider } from './app/providers/WebSocketProvider';
 import { wsHost } from './shared/config/constants';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);

@@ -1,0 +1,351 @@
+import { Button, Dropdown, Flex, MenuProps, Modal, Typography, Upload } from 'antd';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import React, { useRef, useState } from 'react';
+import {
+    CodeOutlined,
+    CopyOutlined,
+    DeleteOutlined,
+    DownloadOutlined,
+    EditOutlined,
+    MoreOutlined,
+} from '@ant-design/icons';
+import { useSelector } from 'react-redux';
+import { MessageModel } from '../../../entities/message';
+import { RootStateType } from '../../../app/store/store';
+import { isLikelyCode } from '../../../shared/config/utils.py';
+import { DeleteMessageModal } from '../../../features/chat/modals/DeleteMessageModal';
+import { EditMessageModal } from '../../../features/chat/modals/EditMessageModal';
+import { AttachmentModel } from '../../../entities/attachment';
+
+const { Text } = Typography;
+
+type PropsType = {
+    data: MessageModel;
+    fromYou: boolean;
+    onEdit?: (message: MessageModel) => void;
+    onDelete?: (messageId: string) => void;
+    onCopy?: (text: string) => void;
+    onReply?: (message: MessageModel) => void;
+};
+
+const Message = (props: PropsType) => {
+    // Store
+    const selectedConversation = useSelector(
+        (state: RootStateType) => state.currentUser.selectedConversation
+    );
+    // -----
+
+    // States
+    const [contextMenuVisible, setContextMenuVisible] = useState(false);
+    const [deleteMessageModalVisible, setDeleteMessageModalVisible] = useState(false);
+    const [editMessageModalVisible, setEditMessageModalVisible] = useState(false);
+    const messageRef = useRef<HTMLDivElement>(null);
+    // -----
+
+    // Web requests
+
+    // -----
+
+    // Handlers
+    // Функция для автоматического определения языка кода
+    const detectLanguage = (codeText: string): string => {
+        const text = codeText.trim();
+
+        if (/<\?php|namespace\s|use\s[A-Z]/.test(text)) return 'php';
+        if (/import\sReact|export\sdefault|\.tsx?$/.test(text)) return 'typescript';
+        if (/import\s|from\s|\.jsx?$|const\s|let\s|var\s/.test(text)) return 'javascript';
+        if (/def\s|class\s.*:|import\s|\.py$|print\(/.test(text)) return 'python';
+        if (/package\s|public\sclass|System\.|\.java$|void\s/.test(text)) return 'java';
+        if (/func\s|package\s|import\s"|\.go$|fmt\./.test(text)) return 'go';
+        if (/<\?|<html|<!DOCTYPE|div\s|class=|\.html?$/.test(text)) return 'html';
+        if (/{|}\s*;|@media|\.css$|color:|margin:/.test(text)) return 'css';
+        if (/CREATE\s|SELECT\s|INSERT\s|UPDATE\s|FROM\s/i.test(text)) return 'sql';
+        if (/^{.*}$|^\[.*\]$/.test(text) && text.includes('":')) return 'json';
+        if (/#include|int\smain|printf|\.cpp$|\.c$/.test(text)) return 'cpp';
+        if (/fn\s|impl\s|let\smut|\.rs$/.test(text)) return 'rust';
+
+        return 'text';
+    };
+    // Обработка правого клика
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setContextMenuVisible(true);
+    };
+    // Функции для пунктов меню
+    const handleCopyText = () => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(props.data.text).then(() => {
+                props.onCopy?.(props.data.text);
+            });
+        }
+        setContextMenuVisible(false);
+    };
+    const handleCopyCode = () => {
+        const codeBlocks = props.data.text.match(/```[\s\S]*?```/g);
+        if (codeBlocks && codeBlocks.length > 0) {
+            const allCode = codeBlocks
+                .map((block) =>
+                    block
+                        .replace(/```\w*\n?/, '')
+                        .replace(/```$/, '')
+                        .trim()
+                )
+                .join('\n\n');
+
+            if (navigator.clipboard) {
+                navigator.clipboard
+                    .writeText(allCode)
+                    .then(() => {
+                        props.onCopy?.(allCode);
+                    })
+                    .catch(() => {
+                        Modal.info({
+                            title: 'Скопируйте код',
+                            content: (
+                                <div style={{ marginTop: 16 }}>
+                                    <SyntaxHighlighter
+                                        language={detectLanguage(allCode)}
+                                        style={docco}
+                                    >
+                                        {allCode}
+                                    </SyntaxHighlighter>
+                                </div>
+                            ),
+                            width: 600,
+                        });
+                    });
+            }
+        }
+        setContextMenuVisible(false);
+    };
+    const handleEdit = () => {
+        setEditMessageModalVisible(true);
+        setContextMenuVisible(false);
+    };
+    const handleDelete = () => {
+        setDeleteMessageModalVisible(true);
+        setContextMenuVisible(false);
+    };
+    const handleDownloadAttachments = () => {
+        if (props.data.attachments && props.data.attachments.length > 0) {
+            props.data.attachments.forEach((attachment) => {
+                const link = document.createElement('a');
+                link.href = attachment.file_url;
+                link.download = attachment.file_name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+        setContextMenuVisible(false);
+    };
+    // Определение пунктов контекстного меню
+    const getMenuItems = (): MenuProps['items'] => {
+        const items: MenuProps['items'] = [
+            {
+                key: 'copy-text',
+                icon: <CopyOutlined />,
+                label: 'Копировать текст',
+                onClick: handleCopyText,
+            },
+        ];
+
+        // Добавляем пункт для копирования кода, если есть код
+        if (props.data.text.includes('```') || isLikelyCode(props.data.text)) {
+            items.splice(1, 0, {
+                key: 'copy-code',
+                icon: <CodeOutlined />,
+                label: 'Копировать код',
+                onClick: handleCopyCode,
+            });
+        }
+
+        // Добавляем пункт для скачивания вложений, если они есть
+        if (props.data.attachments && props.data.attachments.length > 0) {
+            items.push({
+                key: 'download',
+                icon: <DownloadOutlined />,
+                label: `Скачать файлы (${props.data.attachments.length})`,
+                onClick: handleDownloadAttachments,
+            });
+        }
+
+        // Если сообщение от текущего пользователя, добавляем редактирование и удаление
+        if (props.fromYou) {
+            items.push(
+                { type: 'divider' },
+                {
+                    key: 'edit',
+                    icon: <EditOutlined />,
+                    label: 'Редактировать',
+                    onClick: handleEdit,
+                },
+                {
+                    key: 'delete',
+                    icon: <DeleteOutlined />,
+                    label: 'Удалить',
+                    danger: true,
+                    onClick: handleDelete,
+                }
+            );
+        }
+
+        return items;
+    };
+    // Основная функция форматирования текста сообщения (остается без изменений)
+    const formatMessageText = (text: string) => {
+        if (isLikelyCode(text)) {
+            const language = detectLanguage(text);
+            return (
+                <SyntaxHighlighter
+                    language={language}
+                    style={docco}
+                    showLineNumbers={true}
+                    customStyle={{
+                        fontSize: '12px',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        margin: '8px 0',
+                        backgroundColor: '#f5f5f5',
+                        maxWidth: '100%',
+                        overflowX: 'auto',
+                    }}
+                >
+                    {text.trim()}
+                </SyntaxHighlighter>
+            );
+        } else if (/https?:\/\/[^/]+\/messenger\/\?room=/.test(text))
+            return (
+                <Flex vertical gap={'small'}>
+                    <Text>Моя транляция</Text>
+                    <Flex gap={'small'}>
+                        <Button onClick={() => window.open(text, '_blank')}>Подключиться</Button>
+                        <Button onClick={() => navigator.clipboard.writeText(text)}>
+                            Скопировать ссылку
+                        </Button>
+                    </Flex>
+                </Flex>
+            );
+        return <span>{text}</span>;
+    };
+    // -----
+
+    return (
+        <>
+            {deleteMessageModalVisible && (
+                <DeleteMessageModal
+                    data={props.data}
+                    setVisible={setDeleteMessageModalVisible}
+                    visible={deleteMessageModalVisible}
+                />
+            )}
+            {editMessageModalVisible && (
+                <EditMessageModal
+                    data={props.data}
+                    setVisible={setEditMessageModalVisible}
+                    visible={editMessageModalVisible}
+                />
+            )}
+            <Dropdown
+                menu={{ items: getMenuItems() }}
+                trigger={['contextMenu']}
+                open={contextMenuVisible}
+                onOpenChange={setContextMenuVisible}
+            >
+                <div
+                    ref={messageRef}
+                    className="message"
+                    style={{
+                        display: 'flex',
+                        alignSelf: props.fromYou ? 'end' : 'start',
+                        maxWidth: '65vw',
+                        margin: '0 10px 12px 0',
+                        cursor: 'context-menu',
+                        position: 'relative',
+                    }}
+                    onContextMenu={handleContextMenu}
+                >
+                    <Flex vertical>
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                right: props.fromYou ? 'auto' : -30,
+                                left: props.fromYou ? -30 : 'auto',
+                                opacity: 0,
+                                transition: 'opacity 0.2s',
+                            }}
+                        >
+                            <Button
+                                type="text"
+                                icon={<MoreOutlined />}
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setContextMenuVisible(true);
+                                }}
+                            />
+                        </div>
+
+                        <Flex
+                            style={{
+                                fontSize: 12,
+                                color: '#5b96ef',
+                                paddingLeft: '4px',
+                            }}
+                        >
+                            {props.data.sender?.profile.last_name}{' '}
+                            {props.data.sender?.profile.first_name}
+                        </Flex>
+
+                        <div
+                            style={{
+                                padding: '8px 8px',
+                                borderRadius: '10px',
+                                maxWidth: '60vw',
+                                wordBreak: 'break-word',
+                            }}
+                        >
+                            {formatMessageText(props.data.text)}
+                        </div>
+
+                        <Flex
+                            style={{
+                                fontSize: 10,
+                                color: '#888',
+                                paddingLeft: '4px',
+                                justifyContent: props.fromYou ? 'flex-end' : 'flex-start',
+                            }}
+                        >
+                            {props.data.is_edited && 'Изменено'} {props.data.sent_at}
+                        </Flex>
+
+                        {props.data.attachments && props.data.attachments.length > 0 && (
+                            <Upload
+                                defaultFileList={props.data.attachments.map(
+                                    (file: AttachmentModel) => ({
+                                        uid: file.id.toString(),
+                                        name:
+                                            file.file_name.length > 37
+                                                ? `${file.file_name.slice(0, 34)}...`
+                                                : file.file_name,
+                                        status: 'done',
+                                        url: `${file.file_url.replace(':9000', '/storage')}`,
+                                    })
+                                )}
+                                showUploadList={{
+                                    showRemoveIcon: false,
+                                    showDownloadIcon: true,
+                                    showPreviewIcon: true,
+                                }}
+                            />
+                        )}
+                    </Flex>
+                </div>
+            </Dropdown>
+        </>
+    );
+};
+
+export default Message;
