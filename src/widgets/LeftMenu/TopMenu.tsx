@@ -1,10 +1,10 @@
 import { Avatar, Button, Flex, Popover } from 'antd';
 import { UsergroupAddOutlined, ReloadOutlined } from '@ant-design/icons';
 import React, { useState } from 'react';
-import { ProfileModal } from '../../features/profile/modals/ProfileModal/ui/ProfileModal';
-import { CreateGroupModal } from '../../features/contacts/modals/CreateGroupModal/ui/CreateGroupModal';
 import { useSelector } from 'react-redux';
-import { RootStateType } from '../../app/store/store';
+import { RootStateType } from 'app/store/store';
+import { CreateGroupModal } from 'features/contacts/modals/CreateGroupModal';
+import { ProfileModal } from 'features/profile/modals/ProfileModal';
 
 export const TopMenu = () => {
     // Store

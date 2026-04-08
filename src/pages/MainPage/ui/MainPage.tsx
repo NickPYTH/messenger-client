@@ -5,7 +5,7 @@ import { userAPI } from 'entities/user';
 import { RootStateType } from 'app/store/store';
 import { setCurrentUser } from 'app/store/slice/GeneralSlice';
 import { LeftMenu } from 'widgets/LeftMenu/LeftMenu';
-import { ChatWindow } from '../../../widgets/ChatWindow/ui/ChatWindow';
+import { ChatWindow } from 'widgets/ChatWindow';
 
 const MainPage = () => {
     const dispatch = useDispatch();

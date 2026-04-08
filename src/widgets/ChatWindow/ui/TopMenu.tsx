@@ -2,11 +2,11 @@ import { Avatar, Button, Divider, Dropdown, Flex, MenuProps, Typography } from '
 import React, { useEffect, useState } from 'react';
 import { DeleteOutlined, DesktopOutlined, MoreOutlined, SettingOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { RootStateType } from '../../../app/store/store';
-import { ConversationMemberModel, ConversationModel } from '../../../entities/conversation';
-import { CONVERSATION_TYPE } from '../../../shared/config/constants';
-import { ConfirmChatDeleteModal } from '../../../features/chat/modals/ConfirmChatDeleteModal/ui/ConfirmChatDeleteModal';
-import { ChatSettingsModal } from '../../../features/chat/modals/ChatSettingsModal';
+import { RootStateType } from 'app/store/store';
+import { ConversationMemberModel, ConversationModel } from 'entities/conversation';
+import { CONVERSATION_TYPE } from 'shared/config/constants';
+import { ChatSettingsModal } from 'features/chat/modals/ChatSettingsModal';
+import { ConfirmChatDeleteModal } from 'features/chat/modals/ConfirmChatDeleteModal';
 
 const { Text } = Typography;
 

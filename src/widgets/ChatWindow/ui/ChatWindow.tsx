@@ -1,21 +1,22 @@
-import React, { useRef, useEffect } from 'react';
+// widgets/ChatWindow/ui/ChatWindow.tsx
+import React, { useRef, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { Empty, Flex } from 'antd';
+import { Flex, Spin } from 'antd';
 import { RootStateType } from 'app/store/store';
 import { TopMenu } from './TopMenu';
 import { MessageInput } from './MessageInput';
 import { AttachmentsList } from './AttachmentsList';
+import VirtualMessageList, { VirtualMessageListRef } from './VirtualMessageList';
 import { AttachmentModal } from 'features/chat/modals/AttachmentModal';
 import { ScreenshotModal } from 'features/chat/modals/ScreenshotModal';
 import { ScreenShareModal } from 'features/shareScreen/ui/ScreenShareModal';
 import useChatMessages from '../model/useChatMessages';
 import useMessageSending from '../model/useSendMessage';
-import Message from './Message';
 import useAttachments from '../model/useAttachments';
 import useVirtualHelper from '../model/useVirtulaHelper';
 import useScreenshot from '../model/useScreenshot';
 
-export const ChatWindow = () => {
+const ChatWindow = () => {
     // Store
     const selectedConversation = useSelector(
         (state: RootStateType) => state.currentUser.selectedConversation
@@ -23,10 +24,13 @@ export const ChatWindow = () => {
     const currentUser = useSelector((state: RootStateType) => state.currentUser.user);
 
     // Refs
-    const bottomRef = useRef<HTMLDivElement>(null);
+    const virtualListRef = useRef<VirtualMessageListRef>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Hooks
-    const { messages } = useChatMessages(selectedConversation?.id);
+    const { messages, loading, loadingMore, isFromCache, hasMore, loadMoreMessages } =
+        useChatMessages(selectedConversation?.id);
+
     const {
         text,
         setText,
@@ -62,17 +66,17 @@ export const ChatWindow = () => {
 
     // Эффекты
     useEffect(() => {
-        const scrollToBottom = () => {
-            bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        };
-        scrollToBottom();
-    }, [messages]);
-
-    useEffect(() => {
         if (isContextDropped) {
             alert('Контекст сброшен');
         }
     }, [isContextDropped]);
+
+    // Прокрутка вниз при отправке нового сообщения
+    useEffect(() => {
+        if (messages.length > 0) {
+            virtualListRef.current?.scrollToBottom();
+        }
+    }, [messages.length]);
 
     // Handlers
     const handleFilesSelected = (files: any[]) => {
@@ -87,7 +91,6 @@ export const ChatWindow = () => {
         setAttachments((prev: any) => [...prev, attachment]);
         setScreenshotModalVisible(false);
 
-        // Фокусируемся на поле ввода
         setTimeout(() => {
             const textarea = document.querySelector('textarea');
             textarea?.focus();
@@ -103,10 +106,40 @@ export const ChatWindow = () => {
         setText(e.target.value);
     };
 
+    const handleScrollToTop = useCallback(() => {
+        if (hasMore && !loadingMore) {
+            const oldScrollHeight =
+                containerRef.current?.querySelector('.virtual-list-container')?.scrollHeight || 0;
+
+            loadMoreMessages();
+
+            // Сохраняем позицию скролла после загрузки
+            setTimeout(() => {
+                const newScrollHeight =
+                    containerRef.current?.querySelector('.virtual-list-container')?.scrollHeight ||
+                    0;
+                const scrollContainer =
+                    containerRef.current?.querySelector('.virtual-list-container');
+                if (scrollContainer) {
+                    scrollContainer.scrollTop = newScrollHeight - oldScrollHeight;
+                }
+            }, 100);
+        }
+    }, [hasMore, loadingMore, loadMoreMessages]);
+
     const allAttachments = [...messageAttachments, ...extraAttachments];
+
+    if (loading && messages.length === 0) {
+        return (
+            <Flex justify="center" align="center" style={{ height: '100%' }}>
+                <Spin tip="Загрузка сообщений..." />
+            </Flex>
+        );
+    }
 
     return (
         <Flex
+            ref={containerRef}
             style={{
                 display: 'grid',
                 gridTemplateRows: 'auto 1fr auto',
@@ -144,27 +177,38 @@ export const ChatWindow = () => {
                 isVirtualHelperConversation={isVirtualHelper}
             />
 
-            <Flex
-                vertical
-                style={{
-                    overflowY: 'auto',
-                    padding: '0px 0',
-                }}
-            >
-                {messages.map((message) => (
-                    <Message
-                        key={message.id}
-                        data={message}
-                        fromYou={message.sender?.id === currentUser?.id}
-                    />
-                ))}
+            {/* Виртуальный список сообщений */}
+            <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+                <VirtualMessageList
+                    ref={virtualListRef}
+                    messages={messages}
+                    currentUserId={currentUser?.id}
+                    loading={loading}
+                    onScrollToTop={handleScrollToTop}
+                    hasMore={hasMore}
+                    loadingMore={loadingMore}
+                />
 
-                {messages.length === 0 && (
-                    <Empty style={{ marginTop: 50 }} description="Сообщений пока нет..." />
+                {/* Индикатор "из кеша" */}
+                {isFromCache && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: 10,
+                            right: 10,
+                            background: '#52c41a',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: 4,
+                            fontSize: 12,
+                            zIndex: 1000,
+                            opacity: 0.8,
+                        }}
+                    >
+                        ⚡ Из кеша
+                    </div>
                 )}
-
-                <div ref={bottomRef} style={{ height: '0px' }} />
-            </Flex>
+            </div>
 
             <Flex
                 vertical
@@ -196,3 +240,5 @@ export const ChatWindow = () => {
         </Flex>
     );
 };
+
+export default ChatWindow;
