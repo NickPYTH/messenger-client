@@ -5,22 +5,24 @@ import { conversationsAPI } from 'entities/conversation';
 import { useWebSocket } from 'app/providers/WebSocketProvider';
 import { cacheService } from 'shared/lib/cache/cacheService';
 
+const PAGE_SIZE = 50;
+
 const useChatMessages = (conversationId?: number) => {
     const [messages, setMessages] = useState<MessageModel[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [isFromCache, setIsFromCache] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [totalMessages, setTotalMessages] = useState(0);
 
     const { registerHandler } = useWebSocket();
     const [getConversationMessages] = conversationsAPI.useGetMessagesMutation();
+
     const currentOffset = useRef(0);
     const isLoadingMoreRef = useRef(false);
 
-    // Загрузка сообщений с пагинацией
+    // Загрузка сообщений
     const loadMessages = useCallback(
-        async (offset: number = 0, limit: number = 50, isLoadMore: boolean = false) => {
+        async (offset: number = 0, isLoadMore: boolean = false) => {
             if (!conversationId) return;
 
             if (isLoadMore) {
@@ -38,7 +40,7 @@ const useChatMessages = (conversationId?: number) => {
                     if (hasCache) {
                         const cachedMessages = await cacheService.getMessages(
                             conversationId,
-                            limit
+                            PAGE_SIZE
                         );
                         if (cachedMessages.length > 0) {
                             setMessages(cachedMessages);
@@ -53,23 +55,24 @@ const useChatMessages = (conversationId?: number) => {
 
                 if (result && result) {
                     const newMessages = result;
-                    //const hasMoreData = result || newMessages.length === limit;
+                    const hasMoreData = false;
 
-                    //setHasMore(hasMoreData);
-                    setTotalMessages(result.length || messages.length + newMessages.length);
+                    setHasMore(hasMoreData);
 
                     if (isLoadMore) {
                         // Добавляем старые сообщения в начало
                         setMessages((prev) => [...newMessages, ...prev]);
-                        currentOffset.current = offset + newMessages.length;
                     } else {
                         setMessages(newMessages);
-                        currentOffset.current = newMessages.length;
                     }
 
+                    currentOffset.current = offset + newMessages.length;
+
                     // Сохраняем в кеш
-                    await cacheService.saveMessages(conversationId, newMessages);
-                    setIsFromCache(false);
+                    if (!isLoadMore) {
+                        await cacheService.saveMessages(conversationId, newMessages);
+                        setIsFromCache(false);
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
@@ -85,10 +88,10 @@ const useChatMessages = (conversationId?: number) => {
         [conversationId, getConversationMessages, hasMore]
     );
 
-    // Загрузка следующих сообщений (при скролле вверх)
+    // Загрузка старых сообщений (скролл вверх)
     const loadMoreMessages = useCallback(() => {
         if (!loadingMore && hasMore && !isLoadingMoreRef.current) {
-            loadMessages(currentOffset.current, 50, true);
+            loadMessages(currentOffset.current, true);
         }
     }, [loadingMore, hasMore, loadMessages]);
 
@@ -98,54 +101,49 @@ const useChatMessages = (conversationId?: number) => {
             currentOffset.current = 0;
             setHasMore(true);
             setMessages([]);
-            loadMessages(0, 50, false);
+            loadMessages(0, false);
         }
     }, [conversationId]);
 
-    // WebSocket обработчики (остаются без изменений)
+    // WebSocket обработчики
     useEffect(() => {
         const addMessageHandler = registerHandler('message_created', async (data) => {
             const newMessage = data.entity as MessageModel;
+
+            if (newMessage.conversation !== conversationId) return;
 
             setMessages((prev) => {
                 const exists = prev.some((msg) => msg.id === newMessage.id);
                 if (exists) return prev;
 
-                // Добавляем новое сообщение в конец
-                const newMessages = [...prev, newMessage];
-                // Обновляем offset
-                currentOffset.current = newMessages.length;
-                return newMessages;
+                // Новое сообщение добавляем в конец
+                return [...prev, newMessage];
             });
 
-            if (conversationId && newMessage.conversation === conversationId) {
-                await cacheService.addMessage(newMessage);
-            }
+            await cacheService.addMessage(newMessage);
         });
 
         const updateMessageHandler = registerHandler('message_updated', async (data) => {
             const updatedMessage = data.entity as MessageModel;
 
+            if (updatedMessage.conversation !== conversationId) return;
+
             setMessages((prev) =>
                 prev.map((msg) => (msg.id === updatedMessage.id ? updatedMessage : msg))
             );
 
-            if (conversationId && updatedMessage.conversation === conversationId) {
-                await cacheService.updateMessage(updatedMessage);
-            }
+            await cacheService.updateMessage(updatedMessage);
         });
 
         const deleteMessageHandler = registerHandler('message_deleted', async (data) => {
             const deletedMessage = data.entity as MessageModel;
 
+            if (deletedMessage.conversation !== conversationId) return;
+
             setMessages((prev) => prev.filter((msg) => msg.id !== deletedMessage.id));
 
-            if (
-                conversationId &&
-                deletedMessage.conversation === conversationId &&
-                deletedMessage.id
-            ) {
-                await cacheService.deleteMessage(deletedMessage.id.toString() ?? '0');
+            if (deletedMessage.id) {
+                await cacheService.deleteMessage(deletedMessage.id.toString());
             }
         });
 
@@ -162,9 +160,8 @@ const useChatMessages = (conversationId?: number) => {
         loadingMore,
         isFromCache,
         hasMore,
-        totalMessages,
         loadMoreMessages,
-        refetch: () => loadMessages(0, 50, false),
+        refresh: () => loadMessages(0, false),
     };
 };
 

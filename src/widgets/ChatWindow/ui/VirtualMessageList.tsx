@@ -1,105 +1,109 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+// widgets/ChatWindow/ui/VirtualMessageList.tsx
+import React, {
+    useRef,
+    useEffect,
+    forwardRef,
+    useImperativeHandle,
+    useState,
+    useCallback,
+} from 'react';
 import { Empty, Flex } from 'antd';
+import { FixedSizeList as List } from 'react-window';
 import Message from './Message';
 import { MessageModel } from 'entities/message';
-import { VariableSizeList } from 'react-window';
 
 interface VirtualMessageListProps {
     messages: MessageModel[];
     currentUserId?: number;
     loading?: boolean;
-    onScrollToTop?: () => void;
+    onLoadMore?: () => void;
     hasMore?: boolean;
     loadingMore?: boolean;
 }
 
 export interface VirtualMessageListRef {
     scrollToBottom: () => void;
-    scrollToMessage: (messageId: number) => void;
 }
 
-const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessageListProps>(
-    ({ messages, currentUserId, loading, onScrollToTop, hasMore, loadingMore }, ref) => {
-        const listRef = useRef<VariableSizeList>(null);
-        const itemHeights = useRef<Map<number, number>>(new Map());
-        const isScrollingToBottom = useRef(false);
-        const prevMessagesLength = useRef(messages.length);
+const ITEM_HEIGHT = 173;
 
-        const getItemHeight = (index: number) => {
-            return itemHeights.current.get(index) || 80;
-        };
+export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessageListProps>(
+    ({ messages, currentUserId, loading, onLoadMore, hasMore, loadingMore }, ref) => {
+        const listRef = useRef<List>(null);
+        const [containerHeight, setContainerHeight] = useState(0);
+        const containerRef = useRef<HTMLDivElement>(null);
+        const isAutoScrolling = useRef(false);
 
-        const setItemHeight = (index: number, height: number) => {
-            if (itemHeights.current.get(index) !== height) {
-                itemHeights.current.set(index, height);
-                listRef.current?.resetAfterIndex(index);
+        // НЕ инвертируем массив - оставляем как есть (старые в начале, новые в конце)
+        // messages[0] - самое старое, messages[messages.length-1] - самое новое
+
+        // Прокрутка вниз (к последнему сообщению)
+        const scrollToBottom = useCallback(() => {
+            if (listRef.current && messages.length > 0) {
+                isAutoScrolling.current = true;
+                const lastIndex = messages.length - 1;
+                listRef.current.scrollToItem(lastIndex, 'end');
+                setTimeout(() => {
+                    isAutoScrolling.current = false;
+                }, 100);
             }
-        };
+        }, [messages.length]);
+
+        useImperativeHandle(ref, () => ({
+            scrollToBottom,
+        }));
+
+        // Автоматическая прокрутка при загрузке и новых сообщениях
+        useEffect(() => {
+            if (messages.length > 0 && !loading) {
+                scrollToBottom();
+            }
+        }, [messages.length, loading, scrollToBottom]);
+
+        // Отслеживаем высоту контейнера
+        useEffect(() => {
+            const updateHeight = () => {
+                if (containerRef.current) {
+                    setContainerHeight(containerRef.current.clientHeight);
+                }
+            };
+
+            updateHeight();
+            window.addEventListener('resize', updateHeight);
+
+            const observer = new ResizeObserver(updateHeight);
+            if (containerRef.current) {
+                observer.observe(containerRef.current);
+            }
+
+            return () => {
+                window.removeEventListener('resize', updateHeight);
+                observer.disconnect();
+            };
+        }, []);
+
+        // Проверка скролла для подгрузки (скролл вверх)
+        const handleScroll = useCallback(
+            ({ scrollOffset }: { scrollOffset: number }) => {
+                if (isAutoScrolling.current) return;
+
+                // Если скроллим вверх (scrollOffset接近 0) - подгружаем старые сообщения
+                if (scrollOffset < 100 && hasMore && !loadingMore && onLoadMore) {
+                    onLoadMore();
+                }
+            },
+            [hasMore, loadingMore, onLoadMore]
+        );
 
         const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
             const message = messages[index];
-            const rowRef = useRef<HTMLDivElement>(null);
-
-            useEffect(() => {
-                if (rowRef.current) {
-                    const height = rowRef.current.clientHeight;
-                    setItemHeight(index, height);
-                }
-            }, [index, message]);
-
             if (!message) return null;
 
             return (
                 <div style={style}>
-                    <Flex
-                        ref={rowRef}
-                        style={{
-                            justifyContent: message.sender?.id === currentUserId ? 'end' : 'start',
-                        }}
-                    >
-                        <Message
-                            key={message.id}
-                            data={message}
-                            fromYou={message.sender?.id === currentUserId}
-                        />
-                    </Flex>
+                    <Message data={message} fromYou={message.sender?.id === currentUserId} />
                 </div>
             );
-        };
-
-        const scrollToBottom = () => {
-            if (listRef.current && messages.length > 0) {
-                isScrollingToBottom.current = true;
-                listRef.current.scrollToItem(messages.length - 1, 'end');
-                setTimeout(() => {
-                    isScrollingToBottom.current = false;
-                }, 100);
-            }
-        };
-
-        const scrollToMessage = (messageId: number) => {
-            const index = messages.findIndex((m) => m.id === messageId);
-            if (index !== -1 && listRef.current) {
-                listRef.current.scrollToItem(index, 'center');
-            }
-        };
-
-        useImperativeHandle(ref, () => ({
-            scrollToBottom,
-            scrollToMessage,
-        }));
-
-        useEffect(() => {
-            if (messages.length > prevMessagesLength.current && !isScrollingToBottom.current) {
-                scrollToBottom();
-            }
-            prevMessagesLength.current = messages.length;
-        }, [messages.length]);
-
-        const handleScroll = ({ scrollOffset }: { scrollOffset: number }) => {
-            if (scrollOffset === 0 && hasMore && !loadingMore && onScrollToTop) {
-                onScrollToTop();
-            }
         };
 
         if (loading && messages.length === 0) {
@@ -119,7 +123,7 @@ const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessageListP
         }
 
         return (
-            <div style={{ height: '100%', position: 'relative' }}>
+            <div ref={containerRef} style={{ height: '100%', position: 'relative' }}>
                 {loadingMore && (
                     <div
                         style={{
@@ -129,28 +133,26 @@ const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessageListP
                             right: 0,
                             textAlign: 'center',
                             padding: '8px',
+                            background: '#f0f0f0',
                             zIndex: 1,
                         }}
                     >
                         Загрузка истории...
                     </div>
                 )}
-                <VariableSizeList
+                <List
                     ref={listRef}
-                    height={window.innerHeight}
+                    height={containerHeight}
                     width="100%"
                     itemCount={messages.length}
-                    itemSize={getItemHeight}
+                    itemSize={ITEM_HEIGHT}
                     onScroll={handleScroll}
-                    style={{ overflowY: 'auto' }}
                 >
                     {Row}
-                </VariableSizeList>
+                </List>
             </div>
         );
     }
 );
 
 VirtualMessageList.displayName = 'VirtualMessageList';
-
-export default VirtualMessageList;

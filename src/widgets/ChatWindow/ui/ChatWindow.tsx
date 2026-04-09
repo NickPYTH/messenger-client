@@ -6,7 +6,6 @@ import { RootStateType } from 'app/store/store';
 import { TopMenu } from './TopMenu';
 import { MessageInput } from './MessageInput';
 import { AttachmentsList } from './AttachmentsList';
-import VirtualMessageList, { VirtualMessageListRef } from './VirtualMessageList';
 import { AttachmentModal } from 'features/chat/modals/AttachmentModal';
 import { ScreenshotModal } from 'features/chat/modals/ScreenshotModal';
 import { ScreenShareModal } from 'features/shareScreen/ui/ScreenShareModal';
@@ -15,6 +14,7 @@ import useMessageSending from '../model/useSendMessage';
 import useAttachments from '../model/useAttachments';
 import useVirtualHelper from '../model/useVirtulaHelper';
 import useScreenshot from '../model/useScreenshot';
+import { VirtualMessageList, VirtualMessageListRef } from './VirtualMessageList';
 
 const ChatWindow = () => {
     // Store
@@ -131,7 +131,7 @@ const ChatWindow = () => {
 
     if (loading && messages.length === 0) {
         return (
-            <Flex justify="center" align="center" style={{ height: '100%' }}>
+            <Flex justify="center" align="center" style={{ height: '100%', width: '100%' }}>
                 <Spin tip="Загрузка сообщений..." />
             </Flex>
         );
@@ -165,12 +165,13 @@ const ChatWindow = () => {
                     existingFiles={allAttachments}
                 />
             )}
-
-            <ScreenshotModal
-                visible={screenshotModalVisible}
-                setVisible={setScreenshotModalVisible}
-                onSendScreenshot={handleSendScreenshotWrapper}
-            />
+            {screenshotModalVisible && (
+                <ScreenshotModal
+                    visible={screenshotModalVisible}
+                    setVisible={setScreenshotModalVisible}
+                    onSendScreenshot={handleSendScreenshotWrapper}
+                />
+            )}
 
             <TopMenu
                 setVisibleScreenShareModal={setVisibleScreenShareModal}
@@ -184,30 +185,9 @@ const ChatWindow = () => {
                     messages={messages}
                     currentUserId={currentUser?.id}
                     loading={loading}
-                    onScrollToTop={handleScrollToTop}
                     hasMore={hasMore}
                     loadingMore={loadingMore}
                 />
-
-                {/* Индикатор "из кеша" */}
-                {isFromCache && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            bottom: 10,
-                            right: 10,
-                            background: '#52c41a',
-                            color: 'white',
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            fontSize: 12,
-                            zIndex: 1000,
-                            opacity: 0.8,
-                        }}
-                    >
-                        ⚡ Из кеша
-                    </div>
-                )}
             </div>
 
             <Flex
