@@ -8,7 +8,7 @@ import React, {
     useCallback,
 } from 'react';
 import { Empty, Flex } from 'antd';
-import { FixedSizeList as List } from 'react-window';
+import { VariableSizeList as List } from 'react-window';
 import Message from './Message';
 import { MessageModel } from 'entities/message';
 
@@ -25,8 +25,6 @@ export interface VirtualMessageListRef {
     scrollToBottom: () => void;
 }
 
-const ITEM_HEIGHT = 173;
-
 export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessageListProps>(
     ({ messages, currentUserId, loading, onLoadMore, hasMore, loadingMore }, ref) => {
         const listRef = useRef<List>(null);
@@ -34,10 +32,22 @@ export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessa
         const containerRef = useRef<HTMLDivElement>(null);
         const isAutoScrolling = useRef(false);
 
-        // НЕ инвертируем массив - оставляем как есть (старые в начале, новые в конце)
-        // messages[0] - самое старое, messages[messages.length-1] - самое новое
+        // Хранилище высот каждого сообщения
+        const heightsRef = useRef<Map<number, number>>(new Map());
 
-        // Прокрутка вниз (к последнему сообщению)
+        // Функция получения высоты сообщения
+        const getItemHeight = useCallback((index: number) => {
+            return heightsRef.current.get(index) || 80; // высота по умолчанию 80px
+        }, []);
+
+        const setItemHeight = useCallback((index: number, height: number) => {
+            const currentHeight = heightsRef.current.get(index);
+            if (currentHeight !== height) {
+                heightsRef.current.set(index, height);
+                listRef.current?.resetAfterIndex(index);
+            }
+        }, []);
+
         const scrollToBottom = useCallback(() => {
             if (listRef.current && messages.length > 0) {
                 isAutoScrolling.current = true;
@@ -53,14 +63,54 @@ export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessa
             scrollToBottom,
         }));
 
-        // Автоматическая прокрутка при загрузке и новых сообщениях
+        const Row = useCallback(
+            ({ index, style }: { index: number; style: React.CSSProperties }) => {
+                const message = messages[index];
+                const rowRef = useRef<HTMLDivElement>(null);
+
+                // Измеряем высоту после рендера
+                useEffect(() => {
+                    if (rowRef.current) {
+                        const height = rowRef.current.clientHeight;
+                        setItemHeight(index, height);
+                    }
+                }, [index, setItemHeight, message]);
+
+                if (!message) return null;
+
+                return (
+                    <div style={style}>
+                        <Flex
+                            justify={message.sender?.id == currentUserId ? 'start' : 'end'}
+                            ref={rowRef}
+                        >
+                            <Message
+                                data={message}
+                                fromYou={message.sender?.id === currentUserId}
+                            />
+                        </Flex>
+                    </div>
+                );
+            },
+            [messages, currentUserId, setItemHeight]
+        );
+
         useEffect(() => {
             if (messages.length > 0 && !loading) {
-                scrollToBottom();
+                // Небольшая задержка для расчёта высоты
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 50);
             }
         }, [messages.length, loading, scrollToBottom]);
 
-        // Отслеживаем высоту контейнера
+        useEffect(() => {
+            heightsRef.current.clear();
+            if (listRef.current) {
+                listRef.current.resetAfterIndex(0);
+            }
+        }, [messages]);
+
         useEffect(() => {
             const updateHeight = () => {
                 if (containerRef.current) {
@@ -82,29 +132,16 @@ export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessa
             };
         }, []);
 
-        // Проверка скролла для подгрузки (скролл вверх)
         const handleScroll = useCallback(
             ({ scrollOffset }: { scrollOffset: number }) => {
                 if (isAutoScrolling.current) return;
 
-                // Если скроллим вверх (scrollOffset接近 0) - подгружаем старые сообщения
                 if (scrollOffset < 100 && hasMore && !loadingMore && onLoadMore) {
                     onLoadMore();
                 }
             },
             [hasMore, loadingMore, onLoadMore]
         );
-
-        const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-            const message = messages[index];
-            if (!message) return null;
-
-            return (
-                <div style={style}>
-                    <Message data={message} fromYou={message.sender?.id === currentUserId} />
-                </div>
-            );
-        };
 
         if (loading && messages.length === 0) {
             return (
@@ -123,29 +160,20 @@ export const VirtualMessageList = forwardRef<VirtualMessageListRef, VirtualMessa
         }
 
         return (
-            <div ref={containerRef} style={{ height: '100%', position: 'relative' }}>
-                {loadingMore && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            textAlign: 'center',
-                            padding: '8px',
-                            background: '#f0f0f0',
-                            zIndex: 1,
-                        }}
-                    >
-                        Загрузка истории...
-                    </div>
-                )}
+            <div
+                ref={containerRef}
+                style={{
+                    height: '100%',
+                    position: 'relative',
+                }}
+            >
                 <List
+                    style={{ overflowX: 'hidden' }}
                     ref={listRef}
                     height={containerHeight}
-                    width="100%"
+                    width={'100%'}
                     itemCount={messages.length}
-                    itemSize={ITEM_HEIGHT}
+                    itemSize={getItemHeight}
                     onScroll={handleScroll}
                 >
                     {Row}

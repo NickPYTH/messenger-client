@@ -178,7 +178,6 @@ const ChatWindow = () => {
                 isVirtualHelperConversation={isVirtualHelper}
             />
 
-            {/* Виртуальный список сообщений */}
             <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                 <VirtualMessageList
                     ref={virtualListRef}
